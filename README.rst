@@ -10,7 +10,7 @@ Python 3.5 or higher.
 
 Installation
 ============
-Git clone the repository and change into the project's directory. Execute :bash:`pip install .` for installing the integration test. Afterwards you can start it with the command :bash:`softfire-integration-test`.
+Git clone the repository and change into the project's directory. Execute :code:`pip install .` for installing the integration test. Afterwards you can start it with the command :code:`softfire-integration-test`.
 
 
 Preparation
