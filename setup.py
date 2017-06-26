@@ -30,7 +30,8 @@ setup(
     packages=packages,
     scripts=["softfire-integration-test"],
     install_requires=[
-        'requests'
+        'requests',
+        'PyYAML'
     ],
     long_description=read('README.rst'),
     classifiers=[
