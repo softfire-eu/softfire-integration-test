@@ -38,6 +38,10 @@ class NfvResourceValidator(AbstractValidator):
                 error_message = 'NSR for resource {} is in ERROR state.'.format(resource_id)
                 log.error(error_message)
                 raise Exception(error_message)
+        if nsr.get('status') != 'ACTIVE':
+            error_message = 'Timeout: the NSR {} is still not in active state'.format(nsr.get('name'))
+            log.error(error_message)
+            raise Exception(error_message)
         vnfr_list = nsr.get('vnfr')
         unpingable_floating_ips = []
         pingable_floating_ips = []
