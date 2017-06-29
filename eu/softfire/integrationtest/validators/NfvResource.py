@@ -1,11 +1,9 @@
 import json
-import subprocess
-
 import logging
-
+import subprocess
 import time
 
-from eu.softfire.integrationtest.main.experiment_manager_client import get_experiment_status, get_resource_from_id
+from eu.softfire.integrationtest.main.experiment_manager_client import get_resource_from_id
 from eu.softfire.integrationtest.utils.exceptions import NfvValidationException
 from eu.softfire.integrationtest.validators.validators import AbstractValidator
 
