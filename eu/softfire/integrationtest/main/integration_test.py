@@ -6,7 +6,7 @@ import zipfile
 import yaml
 
 from eu.softfire.integrationtest.main.experiment_manager_client import create_user, upload_experiment, \
-    delete_experiment, deploy_experiment
+    delete_experiment, deploy_experiment, get_resource_from_id
 from eu.softfire.integrationtest.utils.utils import get_config_value
 from eu.softfire.integrationtest.utils.utils import get_logger, print_results
 from eu.softfire.integrationtest.validators.validators import get_validator
@@ -72,7 +72,7 @@ def start_integration_test():
     for resource_id in experiment_resources:
         try:
             validator = get_validator(experiment_resources.get(resource_id))
-            validator.validate(resource_id)
+            validator.validate(get_resource_from_id(resource_id), resource_id)
             log.info('Validation of resource {} succeeded.'.format(resource_id))
             validated_resources.append(['   - {}'.format(resource_id), 'OK', ''])
         except Exception as e:
