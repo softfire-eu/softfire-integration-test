@@ -4,6 +4,7 @@ import traceback
 
 import requests
 
+from eu.softfire.integrationtest.utils.exceptions import IntegrationTestException
 from eu.softfire.integrationtest.utils.utils import get_config_value
 from eu.softfire.integrationtest.utils.utils import get_logger
 
@@ -125,3 +126,11 @@ def get_experiment_status(executing_user_name=None, executing_user_pwd=None):
     __validate_response_status(response.status_code, 200)
     log.debug('Successfully fetched experiment status: {}'.format(response.text))
     return json.loads(response.text)
+
+
+def get_resource_from_id(resource_id, executing_user_name=None, executing_user_pwd=None):
+    resources = get_experiment_status(executing_user_name, executing_user_pwd)
+    for res in resources:
+        if res.get('resource_id') == resource_id:
+            return res.get('value').strip("'")
+    raise IntegrationTestException("Resource with id %s not found" % resource_id)
