@@ -1,4 +1,5 @@
 import os.path
+import sys
 import time
 import traceback
 import zipfile
@@ -33,7 +34,9 @@ def start_integration_test():
         traceback.print_exc()
         test_results.append(['Preparation', 'FAILED', str(e)])
         time.sleep(1)
+        print()
         print_results(test_results)
+        __exit_on_failure(test_results)
         return
 
     # create experimenter
@@ -104,6 +107,7 @@ def start_integration_test():
     time.sleep(1)  # otherwise the results were printed in the middle of the stack traces
     print()
     print_results(test_results)
+    __exit_on_failure(test_results)
 
 
 def __get_experiment_resources(experiment_file_path):
@@ -133,3 +137,9 @@ def __get_experiment_resources(experiment_file_path):
                     raise Exception('Could not retrieve the type of node {}'.format(node_key))
                 experiment_resources[resource_id] = resource_type
     return experiment_resources
+
+
+def __exit_on_failure(test_results):
+    for result in [r[1] for r in test_results]:
+        if result != 'OK':
+            sys.exit(1)
