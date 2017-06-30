@@ -14,3 +14,7 @@ class NfvValidationException(IntegrationTestException):
 
 class SdnValidationException(IntegrationTestException):
     pass
+
+
+class PhysicalResourceValidatorError(IntegrationTestException):
+    pass
