@@ -5,19 +5,21 @@ import time
 
 from eu.softfire.integrationtest.main.experiment_manager_client import get_resource_from_id
 from eu.softfire.integrationtest.utils.exceptions import NfvValidationException
+from eu.softfire.integrationtest.utils.utils import get_config_value
 from eu.softfire.integrationtest.validators.validators import AbstractValidator
 
 log = logging.getLogger(__name__)
+
+wait_nfv_resource_minuties = int(get_config_value('nfv-resource', 'wait-nfv-res-min', '7'))
 
 
 class NfvResourceValidator(AbstractValidator):
     def validate(self, resource, resource_id):
         log.debug('Validate NfvResource with resource_id: {}'.format(resource_id))
         # wait at most about 4 minutes for the NSR to reach active state
-        for i in range(48):
-            time.sleep(5)
-            nsr = None
-            # TODO check status
+        nsr = None
+        for i in range(wait_nfv_resource_minuties * 20):
+            time.sleep(3)
             resource = get_resource_from_id(resource_id)
             nsr = json.loads(resource)
 
@@ -30,10 +32,15 @@ class NfvResourceValidator(AbstractValidator):
                 error_message = 'NSR for resource {} is in ERROR state.'.format(resource_id)
                 log.error(error_message)
                 raise NfvValidationException(error_message)
+
+        if not nsr:
+            raise NfvValidationException('Could not find resource {}'.format(resource_id))
+
         if nsr.get('status') != 'ACTIVE':
-            error_message = 'Timeout: the NSR {} is still not in active state'.format(nsr.get('name'))
+            error_message = 'Timeout: the NSR {} is still not in active state after {} minutes'.format(nsr.get('name'), wait_nfv_resource_minuties)
             log.error(error_message)
             raise NfvValidationException(error_message)
+
         vnfr_list = nsr.get('vnfr')
         unpingable_floating_ips = []
         pingable_floating_ips = []
