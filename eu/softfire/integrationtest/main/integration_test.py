@@ -6,7 +6,7 @@ import zipfile
 import yaml
 
 from eu.softfire.integrationtest.main.experiment_manager_client import create_user, upload_experiment, \
-    delete_experiment, deploy_experiment, get_resource_from_id
+    delete_experiment, deploy_experiment, get_resource_from_id, get_experiment_status
 from eu.softfire.integrationtest.utils.utils import get_config_value
 from eu.softfire.integrationtest.utils.utils import get_logger, print_results
 from eu.softfire.integrationtest.validators.validators import get_validator
@@ -69,12 +69,16 @@ def start_integration_test():
     # validate deployment
     validated_resources = []
     failed_resources = []
-    for resource_id in experiment_resources:
+    deployed_experiment = get_experiment_status()
+    for resource in deployed_experiment:
+        used_resource_id = resource.get('used_resource_id')
+        resource_id = resource.get('resource_id')
+        node_type = resource.get('node_type')
         try:
-            validator = get_validator(experiment_resources.get(resource_id))
-            validator.validate(get_resource_from_id(resource_id), resource_id)
-            log.info('Validation of resource {} succeeded.'.format(resource_id))
-            validated_resources.append(['   - {}'.format(resource_id), 'OK', ''])
+            validator = get_validator(node_type)
+            validator.validate(get_resource_from_id(used_resource_id), used_resource_id)
+            log.info('Validation of resource {} succeeded.'.format(used_resource_id))
+            validated_resources.append(['   - {}'.format(used_resource_id), 'OK', ''])
         except Exception as e:
             log.error('Validation of resource {} failded.'.format(resource_id))
             traceback.print_exc()
@@ -98,6 +102,7 @@ def start_integration_test():
         test_results.append(['Delete Experiment', 'FAILED', str(e)])
 
     time.sleep(1)  # otherwise the results were printed in the middle of the stack traces
+    print()
     print_results(test_results)
 
 

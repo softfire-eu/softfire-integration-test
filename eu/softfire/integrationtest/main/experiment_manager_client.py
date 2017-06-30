@@ -128,9 +128,13 @@ def get_experiment_status(executing_user_name=None, executing_user_pwd=None):
     return json.loads(response.text)
 
 
-def get_resource_from_id(resource_id, executing_user_name=None, executing_user_pwd=None):
+def get_resource_from_id(used_resource_id, executing_user_name=None, executing_user_pwd=None):
     resources = get_experiment_status(executing_user_name, executing_user_pwd)
     for res in resources:
-        if res.get('resource_id') == resource_id:
+        if res.get('used_resource_id') == used_resource_id:
             return res.get('value').strip("'")
-    raise IntegrationTestException("Resource with id %s not found" % resource_id)
+    raise IntegrationTestException("Resource with id %s not found" % used_resource_id)
+
+
+if __name__ == '__main__':
+    print(get_experiment_status())
