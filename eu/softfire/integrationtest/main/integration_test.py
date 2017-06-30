@@ -77,12 +77,12 @@ def start_integration_test():
         try:
             validator = get_validator(node_type)
             validator.validate(get_resource_from_id(used_resource_id), used_resource_id)
-            log.info('Validation of resource {} succeeded.'.format(used_resource_id))
-            validated_resources.append(['   - {}'.format(used_resource_id), 'OK', ''])
+            log.info('Validation of resource {}-{} succeeded.'.format(resource_id, used_resource_id))
+            validated_resources.append(['   - {}-{}'.format(resource_id, used_resource_id), 'OK', ''])
         except Exception as e:
-            log.error('Validation of resource {} failded.'.format(resource_id))
+            log.error('Validation of resource {}-{} failded.'.format(resource_id, used_resource_id))
             traceback.print_exc()
-            validated_resources.append(['   - {}'.format(resource_id), 'FAILED', str(e)])
+            validated_resources.append(['   - {}-{}'.format(resource_id, used_resource_id), 'FAILED', str(e)])
             failed_resources.append(resource_id)
     if len(failed_resources) == 0:
         test_results.append(['Validate Resources', 'OK', ''])
