@@ -10,3 +10,7 @@ class IntegrationTestException(_BaseException):
 
 class NfvValidationException(IntegrationTestException):
     pass
+
+
+class SdnValidationException(IntegrationTestException):
+    pass
