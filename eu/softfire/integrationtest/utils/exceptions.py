@@ -14,3 +14,6 @@ class NfvValidationException(IntegrationTestException):
 
 class SdnValidationException(IntegrationTestException):
     pass
+
+class SecurityResourceValidationException(IntegrationTestException):
+    pass
