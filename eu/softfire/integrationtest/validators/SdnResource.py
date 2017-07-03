@@ -26,9 +26,10 @@ class SdnResourceValidator(AbstractValidator):
             targeturl = res_uri
             payload = {"jsonrpc": "2.0", "method": "list.methods", "params": [], "id": 23}
             try:
-                result = requests.post(targeturl, json=payload)
+                result = requests.post(targeturl, json=payload, headers={'API-Token': res_token})
                 if result.status_code == 200:
                     resj = result.json()
+                    log.debug("result: %s" % resj)
                     if resj.get("error"):
                         raise SdnValidationException(
                             "JSON rpc returned an error(%s)" % resj.get("error", dict()).get("message", "Unknown"))
@@ -39,4 +40,19 @@ class SdnResourceValidator(AbstractValidator):
                 pass
             except Exception as e:
                 log.error("json-rpc request to url '%s' failed: %s" % (targeturl, e))
+                print("json-rpc request to url '%s' failed: %s" % (targeturl, e))
                 raise SdnValidationException(e)
+
+
+if __name__ == '__main__':
+    SdnResourceValidator().validate('''{
+    "resource_id": "sdn-controller-opensdncore-fokus",
+    "flow-table-range": [
+        23,
+        24,
+        25
+    ],
+    "URI": "http://172.20.30.5:8001/api",
+    "token": "08dc683f45e7d7f59b0a294ca9852b67"
+}''', "test")
+    print("OK")

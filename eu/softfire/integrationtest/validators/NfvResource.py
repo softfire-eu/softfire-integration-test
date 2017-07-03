@@ -37,7 +37,8 @@ class NfvResourceValidator(AbstractValidator):
             raise NfvValidationException('Could not find resource {}'.format(resource_id))
 
         if nsr.get('status') != 'ACTIVE':
-            error_message = 'Timeout: the NSR {} is still not in active state after {} minutes'.format(nsr.get('name'), wait_nfv_resource_minuties)
+            error_message = 'Timeout: the NSR {} is still not in active state after {} minutes'.format(nsr.get('name'),
+                                                                                                       wait_nfv_resource_minuties)
             log.error(error_message)
             raise NfvValidationException(error_message)
 

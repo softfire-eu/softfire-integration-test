@@ -17,3 +17,6 @@ class SdnValidationException(IntegrationTestException):
 
 class SecurityResourceValidationException(IntegrationTestException):
     pass
+
+class PhysicalResourceValidatorError(IntegrationTestException):
+    pass
