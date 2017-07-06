@@ -19,9 +19,17 @@ class MonitoringResourceValidator(AbstractValidator):
         log.debug('Validate MonitoringResource with resource: {}'.format(resource))
         res = json.loads(resource)
         
+        cnt=1
         
-        r = requests.get(res["url"])
-        if r.status_code==200:
-            return
-        else:
-            raise SecurityResourceValidationException(res)
+        while 1:
+            log.debug('Validate attempt: {}'.format(cnt))
+            time.sleep(15)
+            r = requests.get(res["url"])
+            if r.status_code==200:
+                if "zabbix.php" in r.text:
+                    return
+            cnt += 1
+            if cnt >3:
+                break
+                
+        raise MonitoringResourceValidationException(res)
