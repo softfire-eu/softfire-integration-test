@@ -18,15 +18,14 @@ class MonitoringResourceValidator(AbstractValidator):
         log.debug('Validate MonitoringResource with resource_id: {}'.format(resource_id))
         log.debug('Validate MonitoringResource with resource: {}'.format(resource))
         res = json.loads(resource)
-        
         cnt=1
-        
         while 1:
             log.debug('Validate attempt: {}'.format(cnt))
             try:
                 r = requests.get(res["url"],timeout=5)
                 if r.status_code==200:
                     if "zabbix.php" in r.text:
+                        log.debug('********SUCCESSS*********')
                         return
             except Exception:
                 import traceback
