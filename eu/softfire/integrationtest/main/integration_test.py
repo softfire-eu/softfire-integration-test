@@ -44,7 +44,7 @@ def start_integration_test():
         try:
             create_user(experimenter_name, experimenter_password, 'experimenter',
                         executing_user_name=exp_mngr_admin_name, executing_user_pwd=exp_mngr_admin_pwd)
-            log.info('Successfully created a new experimenter named \'{}\'.' - format(experimenter_name))
+            log.info('Successfully created a new experimenter named \'{}\'.'.format(experimenter_name))
             test_results.append(['Create User', 'OK', ''])
         except Exception as e:
             log.error('Could not create experimenter named {}.'.format(experimenter_name))
