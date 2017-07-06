@@ -29,7 +29,7 @@ class MonitoringResourceValidator(AbstractValidator):
                     if "zabbix.php" in r.text:
                         log.debug('********SUCCESSS*********')
                         return
-            except ConnectTimeout:
+            except Exception:
                 import traceback
                 exceptiondata = traceback.format_exc().splitlines()
                 exception_text = "Error: {}".format(exceptiondata[-1])
