@@ -3,7 +3,7 @@ import logging
 import subprocess
 import time
 import requests
-
+from requests.exceptions import ConnectTimeout
 from eu.softfire.integrationtest.main.experiment_manager_client import get_resource_from_id
 from eu.softfire.integrationtest.utils.exceptions import MonitoringResourceValidationException
 from eu.softfire.integrationtest.utils.utils import get_config_value
@@ -20,22 +20,24 @@ class MonitoringResourceValidator(AbstractValidator):
         res = json.loads(resource)
         cnt=1
         while 1:
+            
             log.debug('Validate attempt: {}'.format(cnt))
+            
             try:
-                r = requests.get(res["url"],timeout=5)
+                r = requests.get(res["url"],timeout=10)
                 if r.status_code==200:
                     if "zabbix.php" in r.text:
                         log.debug('********SUCCESSS*********')
                         return
-            except Exception:
+            except ConnectTimeout:
                 import traceback
-                
-                exception_text = "Error: {}".format(traceback.format_exc())
+                exceptiondata = traceback.format_exc().splitlines()
+                exception_text = "Error: {}".format(exceptiondata[-1])
                 log.debug(exception_text)
                 
             cnt += 1
-            if cnt >3:
+            if cnt >4:
                 break
-            time.sleep(3)
+            time.sleep(5)
                 
         raise MonitoringResourceValidationException(res)
