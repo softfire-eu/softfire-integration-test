@@ -23,13 +23,20 @@ class MonitoringResourceValidator(AbstractValidator):
         
         while 1:
             log.debug('Validate attempt: {}'.format(cnt))
-            time.sleep(15)
-            r = requests.get(res["url"])
-            if r.status_code==200:
-                if "zabbix.php" in r.text:
-                    return
+            try:
+                r = requests.get(res["url"],timeout=5)
+                if r.status_code==200:
+                    if "zabbix.php" in r.text:
+                        return
+            except Exception:
+                import traceback
+                
+                exception_text = "Error: {}".format(traceback.format_exc())
+                log.debug(exception_text)
+                
             cnt += 1
             if cnt >3:
                 break
+            time.sleep(3)
                 
         raise MonitoringResourceValidationException(res)
