@@ -78,7 +78,9 @@ def start_integration_test():
         resource_id = resource.get('resource_id')
         node_type = resource.get('node_type')
         try:
+            log.info("Starting to validate resource of node type: %s" % node_type)
             validator = get_validator(node_type)
+            log.debug("Got validator %s" % validator)
             validator.validate(get_resource_from_id(used_resource_id), used_resource_id)
             log.info('Validation of resource {}-{} succeeded.'.format(resource_id, used_resource_id))
             validated_resources.append(['   - {}-{}'.format(resource_id, used_resource_id), 'OK', ''])
