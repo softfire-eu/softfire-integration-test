@@ -8,7 +8,7 @@ from eu.softfire.integrationtest.utils.exceptions import NfvValidationException
 from eu.softfire.integrationtest.utils.utils import get_config_value
 from eu.softfire.integrationtest.validators.validators import AbstractValidator
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("eu.softfire.integrationtest.%s" % __name__)
 
 wait_nfv_resource_minuties = int(get_config_value('nfv-resource', 'wait-nfv-res-min', '7'))
 
@@ -45,27 +45,23 @@ class NfvResourceValidator(AbstractValidator):
         vnfr_list = nsr.get('vnfr')
         unpingable_floating_ips = []
         pingable_floating_ips = []
+
         for vnfr in vnfr_list:
             log.debug('Checking VNFR {}.'.format(vnfr.get('name')))
-            vdu_list = vnfr.get('vdu')
-            for vdu in vdu_list:
-                vnfc_instance_list = vdu.get('vnfc_instance')
-                for vnfc_instance in vnfc_instance_list:
-                    connection_point_list = vnfc_instance.get('connection_point')
-                    for connection_point in connection_point_list:
-                        floaing_ip = connection_point.get('floatingIp')
-                        log.debug('Checking floating IP {}.'.format(floaing_ip))
-                        if floaing_ip:
-                            ping = subprocess.Popen(
-                                ["ping", "-c", "4", floaing_ip],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE
-                            )
-                            out, error = ping.communicate()
-                            if error.decode('UTF-8') != '':
-                                unpingable_floating_ips.append(floaing_ip)
-                            else:
-                                pingable_floating_ips.append(floaing_ip)
+            fips = [fip.split(":")[1] for fip in vnfr.get('floating IPs')]
+            for floaing_ip in fips:
+                log.debug('Checking floating IP {}.'.format(floaing_ip))
+                if floaing_ip:
+                    ping = subprocess.Popen(
+                        ["ping", "-c", "4", floaing_ip],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE
+                    )
+                    out, error = ping.communicate()
+                    if error.decode('UTF-8') != '':
+                        unpingable_floating_ips.append(floaing_ip)
+                    else:
+                        pingable_floating_ips.append(floaing_ip)
         if len(unpingable_floating_ips) != 0:
             error_message = 'Could not ping the following floating IPs: {}'.format(', '.join(unpingable_floating_ips))
             log.error(error_message)
