@@ -62,7 +62,8 @@ def start_integration_test():
 
     try:
         deploy_experiment()
-        log.info('Deployed experiment.')
+        log.info('Deployed experiment.\n\n\n')
+        time.sleep(5)
         test_results.append(['Deploy Experiment', 'OK', ''])
     except Exception as e:
         log.error('The experiment\'s deployment failed.')
@@ -82,7 +83,9 @@ def start_integration_test():
             validator = get_validator(node_type)
             log.debug("Got validator %s" % validator)
             validator.validate(get_resource_from_id(used_resource_id), used_resource_id)
-            log.info('Validation of resource {}-{} succeeded.'.format(resource_id, used_resource_id))
+            log.info('\n\n\n')
+            log.info('Validation of resource {}-{} succeeded.\n\n\n'.format(resource_id, used_resource_id))
+            time.sleep(5)
             validated_resources.append(['   - {}-{}'.format(resource_id, used_resource_id), 'OK', ''])
         except Exception as e:
             log.error('Validation of resource {}-{} failded.'.format(resource_id, used_resource_id))
@@ -98,8 +101,10 @@ def start_integration_test():
         '' if len(validated_resources) == 1 else 's')))
 
     try:
+        log.info('\n\n\n')
+        log.info("Removing Experiment")
         delete_experiment()
-        log.info('Removed experiment.')
+        log.info('Removed experiment.\n\n\n')
         test_results.append(['Delete Experiment', 'OK', ''])
     except Exception as e:
         log.error('Failure during removal of experiment.')
