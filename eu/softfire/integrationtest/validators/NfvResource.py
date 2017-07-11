@@ -1,14 +1,13 @@
 import json
-import logging
 import subprocess
 import time
 
 from eu.softfire.integrationtest.main.experiment_manager_client import get_resource_from_id
 from eu.softfire.integrationtest.utils.exceptions import NfvValidationException
-from eu.softfire.integrationtest.utils.utils import get_config_value
+from eu.softfire.integrationtest.utils.utils import get_config_value, get_logger
 from eu.softfire.integrationtest.validators.validators import AbstractValidator
 
-log = logging.getLogger("eu.softfire.integrationtest.%s" % __name__)
+log = get_logger(__name__)
 
 wait_nfv_resource_minuties = int(get_config_value('nfv-resource', 'wait-nfv-res-min', '7'))
 
@@ -22,13 +21,14 @@ class NfvResourceValidator(AbstractValidator):
             time.sleep(3)
             resource = get_resource_from_id(resource_id)
             nsr = json.loads(resource)
-
+            nsr_status = nsr.get('status')
+            log.debug("Status of nsr is %s" % nsr_status)
             if not nsr:
                 raise NfvValidationException('Could not find resource {}'.format(resource_id))
-            if nsr.get('status') == 'ACTIVE':
+            if nsr_status == 'ACTIVE':
                 log.debug("NSR is active")
                 break
-            if nsr.get('status') == 'ERROR':
+            if nsr_status == 'ERROR':
                 error_message = 'NSR for resource {} is in ERROR state.'.format(resource_id)
                 log.error(error_message)
                 raise NfvValidationException(error_message)
