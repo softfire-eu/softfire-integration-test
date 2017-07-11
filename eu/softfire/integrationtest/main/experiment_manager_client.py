@@ -124,7 +124,7 @@ def get_experiment_status(executing_user_name=None, executing_user_pwd=None):
     session = log_in(executing_user_name, executing_user_pwd)
     response = session.get(experiment_manager_get_status_url)
     __validate_response_status(response.status_code, 200)
-    log.debug('Successfully fetched experiment status: {}'.format(response.text))
+    # log.debug('Successfully fetched experiment status: {}'.format(response.text))
     return json.loads(response.text)
 
 
