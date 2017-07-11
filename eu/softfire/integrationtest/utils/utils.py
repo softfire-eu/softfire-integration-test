@@ -31,6 +31,9 @@ def get_config_parser():
 
 def get_config_value(section, key, default=None):
     config = get_config_parser()
+    if not config.has_section(section):
+        if default:
+            return default
     if default is None:
         return config.get(section=section, option=key)
     try:
