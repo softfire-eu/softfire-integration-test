@@ -12,19 +12,18 @@ from eu.softfire.integrationtest.validators.validators import AbstractValidator
 
 log = logging.getLogger(__name__)
 
-
 class MonitoringResourceValidator(AbstractValidator):
     def validate(self, resource, resource_id):
         log.debug('Validate MonitoringResource with resource_id: {}'.format(resource_id))
         log.debug('Validate MonitoringResource with resource: {}'.format(resource))
 
         attempts = int(get_config_value('monitoring-resource', 'attempts', '10'))
+
         try:
             res = json.loads(resource)
         except JSONDecodeError as e:
             raise MonitoringResourceValidationException(e.msg)
 
-        log.debug('Validate attempt: {}'.format(res["floatingIp"]))
         if not res["floatingIp"]:
             raise MonitoringResourceValidationException("Floating ip not available: {}".format(res))
             
@@ -45,7 +44,7 @@ class MonitoringResourceValidator(AbstractValidator):
                     exception_data = traceback.format_exc().splitlines()
                     exception_text = "Error: {}".format(exception_data[-1])
                     log.error(exception_text)
-                    raise e  # raise exceptions only after 3 attempts, to allow test passing in slow environments
+                    raise e  # raise exceptions only after X attempts, to allow test passing in slow environments
 
             cnt += 1
 
