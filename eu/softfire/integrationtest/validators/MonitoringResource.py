@@ -24,6 +24,10 @@ class MonitoringResourceValidator(AbstractValidator):
         except JSONDecodeError as e:
             raise MonitoringResourceValidationException(e.msg)
 
+        log.debug('Validate attempt: {}'.format(res["floatingIp"]))
+        if not res["floatingIp"]:
+            raise MonitoringResourceValidationException("Floating ip not available: {}".format(res))
+            
         cnt = 1
         while cnt <= attempts:
 
