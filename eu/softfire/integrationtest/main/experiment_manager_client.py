@@ -37,10 +37,15 @@ def __determine_executing_user(executing_user_name, executing_user_pwd):
     return executing_user_name, executing_user_pwd
 
 
-def __validate_response_status(response_status, expected_status, error_message=None):
-    if response_status != expected_status:
-        error_message = 'HTTP response status code was {}, but expected was {}.'.format(response_status,
-                                                                                        expected_status) or error_message
+def __validate_response_status(response, expected_status, error_message=None):
+    if response.status_code != expected_status:
+        content = response.content
+        try:
+            content = content.decode('UTF-8')
+        except:
+            pass
+        error_message = 'HTTP response status code was {}, but expected was {}: {}'.format(response.status_code,
+                                                                                        expected_status, content) or error_message
         log.error(error_message)
         raise Exception(error_message)
 
@@ -56,9 +61,9 @@ def log_in(username, password):
     session = requests.Session()
     try:
         log_in_response = session.post(experiment_manager_login_url, data={'username': username, 'password': password})
-        __validate_response_status(log_in_response.status_code, 200,
+        __validate_response_status(log_in_response, 200,
                                    'experiment-manager log in failed for user {}. HTTP response status code was {}, but expected was {}.'.format(
-                                       username, log_in_response.status_code, 200))
+                                       username, log_in_response, 200))
         response_text_dict = json.loads(log_in_response.text)
         if (not response_text_dict.get('ok')) or response_text_dict.get('ok') == False:
             error_message = 'experiment-manager log in failed: {}'.format(response_text_dict.get('msg'))
@@ -84,7 +89,7 @@ def create_user(new_user_name, new_user_pwd, new_user_role, executing_user_name=
     session = log_in(executing_user_name, executing_user_pwd)
     response = session.post(experiment_manager_create_user_url,
                             data={'username': new_user_name, 'password': new_user_pwd, 'role': new_user_role})
-    __validate_response_status(response.status_code, 200)
+    __validate_response_status(response, 200)
     log.debug('Creation of a new user named \'{}\' succeeded.'.format(new_user_name))
 
 
@@ -96,7 +101,7 @@ def upload_experiment(experiment_file_path, executing_user_name=None, executing_
     with open(experiment_file_path, 'rb') as experiment_file:
         session = log_in(executing_user_name, executing_user_pwd)
         response = session.post(experiment_manager_upload_experiment_url, files={'data': experiment_file})
-    __validate_response_status(response.status_code, 200)
+    __validate_response_status(response, 200)
     log.debug('Upload of experiment succeeded.')
 
 
@@ -105,7 +110,7 @@ def deploy_experiment(executing_user_name=None, executing_user_pwd=None):
     log.debug('Try to deploy experiment as user \'{}\'.'.format(executing_user_name))
     session = log_in(executing_user_name, executing_user_pwd)
     response = session.post(experiment_manager_deploy_experiment_url)
-    __validate_response_status(response.status_code, 200)
+    __validate_response_status(response, 200)
     log.debug('Deployment of experiment succeeded.')
 
 
@@ -114,7 +119,7 @@ def delete_experiment(executing_user_name=None, executing_user_pwd=None):
     log.debug('Try to remove experiment as user \'{}\'.'.format(executing_user_name))
     session = log_in(executing_user_name, executing_user_pwd)
     response = session.post(experiment_manager_delete_experiment_url)
-    __validate_response_status(response.status_code, 200)
+    __validate_response_status(response, 200)
     log.debug('Removal of experiment succeeded.')
 
 
@@ -123,7 +128,7 @@ def get_experiment_status(executing_user_name=None, executing_user_pwd=None):
     log.debug('Try to get the experiement\'s status as user \'{}\'.'.format(executing_user_name))
     session = log_in(executing_user_name, executing_user_pwd)
     response = session.get(experiment_manager_get_status_url)
-    __validate_response_status(response.status_code, 200)
+    __validate_response_status(response, 200)
     # log.debug('Successfully fetched experiment status: {}'.format(response.text))
     return json.loads(response.text)
 
