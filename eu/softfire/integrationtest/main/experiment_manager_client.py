@@ -44,9 +44,10 @@ def __validate_response_status(response, expected_status, error_message=None):
             content = content.decode('UTF-8')
         except:
             pass
-        error_message = 'HTTP response status code was {}, but expected was {}: {}'.format(response.status_code,
-                                                                                        expected_status, content) or error_message
-        log.error(error_message)
+        error_message = 'HTTP response status code was {}, but expected was {}'.format(response.status_code,
+                                                                                        expected_status) or error_message
+        log.error('HTTP response status code was {}, but expected was {}: {}'.format(response.status_code,
+                                                                                        expected_status, content))
         raise Exception(error_message)
 
 
