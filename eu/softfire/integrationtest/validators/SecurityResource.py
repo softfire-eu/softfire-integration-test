@@ -20,13 +20,13 @@ class SecurityResourceValidator(AbstractValidator):
         res = json.loads(resource)
         for i in range(wait_nfv_resource_minutes * 20):
             for k, v in res.items():
-                if "ERROR" in v.upper():
+                if "ERROR" in str(v).upper():
                     raise SecurityResourceValidationException(v)
                 elif "link" in k:
                     resp = requests.get(v)
                     if resp.status_code != 200:
                         raise SecurityResourceValidationException(v)
-                elif (k == "status" and v == "NULL") or (k == "NSR Details"):
+                elif (k == "status" and str(v) == "NULL") or (k == "NSR Details"):
                     res = json.loads(get_resource_from_id(resource_id))
                     time.sleep(3)
                 else:
