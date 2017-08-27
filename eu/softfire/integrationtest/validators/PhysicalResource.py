@@ -6,7 +6,7 @@ logger = get_logger(__name__)
 
 
 class PhysicalResourceValidator(AbstractValidator):
-    def validate(self, resource, resource_id):
+    def validate(self, resource, resource_id, experimenter_name, experimenter_pwd):
         if not resource:
             raise PhysicalResourceValidatorError("Resource is none or empty!")
         else:

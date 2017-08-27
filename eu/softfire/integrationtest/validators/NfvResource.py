@@ -13,14 +13,18 @@ wait_nfv_resource_minuties = int(get_config_value('nfv-resource', 'wait-nfv-res-
 
 
 class NfvResourceValidator(AbstractValidator):
-    def validate(self, resource, resource_id):
+    def validate(self, resource, resource_id, experimenter_name, experimenter_pwd):
         log.debug('Validate NfvResource with resource_id: {}'.format(resource_id))
-        # wait at most about 4 minutes for the NSR to reach active state
+        # wait at most about 7 minutes for the NSR to reach active state
         nsr = None
         for i in range(wait_nfv_resource_minuties * 20):
             time.sleep(3)
-            resource = get_resource_from_id(resource_id)
-            nsr = json.loads(resource)
+            resource = get_resource_from_id(resource_id, experimenter_name, experimenter_pwd)
+            try:
+                nsr = json.loads(resource)
+            except Exception as e:
+                log.error('Not able to parse resource: {}'.format(resource))
+                raise NfvValidationException('Not able to parse resource: {}'.format(resource))
             nsr_status = nsr.get('status')
             log.debug("Status of nsr is %s" % nsr_status)
             if not nsr:

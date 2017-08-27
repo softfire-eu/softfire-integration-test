@@ -1,13 +1,18 @@
+import configparser
 import os.path
+import queue
 import sys
+import threading
 import time
 import traceback
 import zipfile
 
 import yaml
-
+from collections import OrderedDict
 from eu.softfire.integrationtest.main.experiment_manager_client import create_user, upload_experiment, \
-    delete_experiment, deploy_experiment, get_resource_from_id, get_experiment_status
+    delete_experiment, deploy_experiment, get_resource_from_id, get_experiment_status, delete_user, \
+    log_in
+from eu.softfire.integrationtest.utils.exceptions import IntegrationTestException
 from eu.softfire.integrationtest.utils.utils import get_config_value
 from eu.softfire.integrationtest.utils.utils import get_logger, print_results
 from eu.softfire.integrationtest.validators.validators import get_validator
@@ -15,16 +20,26 @@ from eu.softfire.integrationtest.validators.validators import get_validator
 log = get_logger(__name__)
 
 
+
+def add_result(result_dict, phase, status, details):
+    if phase not in result_dict:
+        result_dict[phase] = {'status': status, 'details': details}
+        return
+    res = result_dict.get(phase)
+    if status != 'OK':
+        res['status'] = status
+    if details != '':
+        res['details'] = '{}; {}'.format(res.get('details'), details) if res.get('details') is not None and res.get('details') != '' else details
+
 def start_integration_test():
     log.info("Starting the SoftFIRE integration tests.")
-    test_results = []
+    test_results = OrderedDict()
 
     # get config values
     exp_mngr_admin_name = get_config_value('experiment-manager', 'admin-username', 'admin')
     exp_mngr_admin_pwd = get_config_value('experiment-manager', 'admin-password', 'admin')
-    experimenter_name = get_config_value('experimenter', 'username')
-    experimenter_password = get_config_value('experimenter', 'password')
     experiment_file_path = get_config_value('experiment', 'experiment-file')
+    experimenters = __get_experimenters()
 
     # retrieve information from experiment file (preparation phase)
     try:
@@ -32,89 +47,148 @@ def start_integration_test():
         log.info('Finished preparation phase.')
     except Exception as e:
         traceback.print_exc()
-        test_results.append(['Preparation', 'FAILED', str(e)])
+        add_result(test_results, 'Preparation', 'FAILED', str(e))
         time.sleep(1)
         print()
-        print_results(test_results)
-        __exit_on_failure(test_results)
+        print_results([[r[0], r[1].get('status'), r[1].get('details')] for r in test_results.items()])
+        __exit_on_failure([[r[0], r[1].get('status'), r[1].get('details')] for r in test_results.items()])
         return
 
-    # create experimenter
-    if get_config_value('experimenter', 'create-user', 'True') in ['True', 'true']:
+    # create experimenter(s)
+    for experimenter in experimenters:
+        experimenter_name = experimenter[0]
+        experimenter_pwd = experimenter[1]
+        create_experimenter = experimenter[2]
+        if create_experimenter in ['True', 'true']:
+            try:
+                create_user(experimenter_name, experimenter_pwd, 'experimenter',
+                            executing_user_name=exp_mngr_admin_name, executing_user_pwd=exp_mngr_admin_pwd)
+                log.info('Triggered the creation of a new experimenter named \'{}\'.'.format(experimenter_name))
+            except Exception as e:
+                log.error('Could not trigger the creation of a new experimenter named {}.'.format(experimenter_pwd))
+                traceback.print_exc()
+                add_result(test_results, 'Create User', 'FAILED', '{}: {}'.format(experimenter_name, str(e)))
+
+    # check if the users were created correctly
+    for experimenter in experimenters:
+        experimenter_name = experimenter[0]
+        experimenter_pwd = experimenter[1]
+        create_experimenter = experimenter[2]
+        if create_experimenter in ['True', 'true']:
+            log.debug('Trying to log in as user {} to check if the user was created successfully.'.format(experimenter_name))
+            for i in range(0, 18):
+                time.sleep(5)
+                try:
+                    log_in(experimenter_name, experimenter_pwd)
+                    add_result(test_results, 'Create User', 'OK', '')
+                    break
+                except:
+                    pass
+            else:
+                log.error('Not able to log in as experimenter {}. Assuming the creation failed.')
+                add_result(test_results, 'Create User', 'FAILED',
+                           '{}: The user seems not to exist.'.format(experimenter_name))
+
+    for experimenter in experimenters:
+        experimenter_name = experimenter[0]
+        experimenter_pwd = experimenter[1]
         try:
-            create_user(experimenter_name, experimenter_password, 'experimenter',
-                        executing_user_name=exp_mngr_admin_name, executing_user_pwd=exp_mngr_admin_pwd)
-            log.info('Successfully created a new experimenter named \'{}\'.'.format(experimenter_name))
-            test_results.append(['Create User', 'OK', ''])
+            upload_experiment(experiment_file_path, experimenter_name, experimenter_pwd)
+            log.info('Experimenter {} uploaded experiment {}.'.format(experimenter_name, experiment_file_path))
+            add_result(test_results, 'Upload Experiment', 'OK', '')
         except Exception as e:
-            log.error('Could not create experimenter named {}.'.format(experimenter_name))
+            log.error('Experimenter {} could not upload experiment {}.'.format(experimenter_name, experiment_file_path))
             traceback.print_exc()
-            test_results.append(['Create User', 'FAILED', str(e)])
+            add_result(test_results, 'Upload Experiment', 'FAILED', '{}: {}'.format(experimenter_name, str(e)))
 
-    try:
-        upload_experiment(experiment_file_path)
-        log.info('Uploaded experiment {}.'.format(experiment_file_path))
-        test_results.append(['Upload Experiment', 'OK', ''])
-    except Exception as e:
-        log.error('Could not upload experiment {}.'.format(experiment_file_path))
-        traceback.print_exc()
-        test_results.append(['Upload Experiment', 'FAILED', str(e)])
+    deployment_threads_queues = []
+    for experimenter in experimenters:
+        experimenter_name = experimenter[0]
+        experimenter_pwd = experimenter[1]
+        q = queue.Queue()
+        t = threading.Thread(target=deploy_experiment, args=(experimenter_name, experimenter_pwd, q,), name=experimenter_name)
+        deployment_threads_queues.append((t, q))
+    for (t, q) in deployment_threads_queues:
+        log.info('Deploy experiment of experimenter {}'.format(t.name))
+        t.start()
+    time.sleep(5)
+    for (t, q) in deployment_threads_queues:
+        t.join()
+        exception = q.get()
+        if exception is not None:
+            log.error('The experiment\'s deployment failed for experimenter {}.'.format(t.name))
+            add_result(test_results, 'Deploy Experiment', 'FAILED', '{}: {}'.format(t.name, str(exception)))
+        else:
+            add_result(test_results, 'Deploy Experiment', 'OK', '')
 
-    try:
-        deploy_experiment()
-        log.info('Deployed experiment.\n\n\n')
-        time.sleep(5)
-        test_results.append(['Deploy Experiment', 'OK', ''])
-    except Exception as e:
-        log.error('The experiment\'s deployment failed.')
-        traceback.print_exc()
-        test_results.append(['Deploy Experiment', 'FAILED', str(e)])
-
-    # validate deployment
+    # validate deployments
     validated_resources = []
-    failed_resources = []
-    deployed_experiment = get_experiment_status()
-    for resource in deployed_experiment:
-        used_resource_id = resource.get('used_resource_id')
-        resource_id = resource.get('resource_id')
-        node_type = resource.get('node_type')
-        try:
-            log.info("Starting to validate resource of node type: %s" % node_type)
-            validator = get_validator(node_type)
-            log.debug("Got validator %s" % validator)
-            validator.validate(get_resource_from_id(used_resource_id), used_resource_id)
-            log.info('\n\n\n')
-            log.info('Validation of resource {}-{} succeeded.\n\n\n'.format(resource_id, used_resource_id))
-            time.sleep(5)
-            validated_resources.append(['   - {}-{}'.format(resource_id, used_resource_id), 'OK', ''])
-        except Exception as e:
-            log.error('Validation of resource {}-{} failded.'.format(resource_id, used_resource_id))
-            traceback.print_exc()
-            validated_resources.append(['   - {}-{}'.format(resource_id, used_resource_id), 'FAILED', str(e)])
-            failed_resources.append(resource_id)
-    if len(failed_resources) == 0:
-        test_results.append(['Validate Resources', 'OK', ''])
-    else:
-        test_results.append(['Validate Resources', 'FAILED', ', '.join(failed_resources)])
-    test_results = test_results + validated_resources
-    log.info('Resource validation phase finished with {} validated resource{}.'.format(len(validated_resources), (
-        '' if len(validated_resources) == 1 else 's')))
+    for experimenter in experimenters:
+        experimenter_name = experimenter[0]
+        experimenter_pwd = experimenter[1]
+        failed_resources = []
+        deployed_experiment = get_experiment_status(experimenter_name, experimenter_pwd)
+        for resource in deployed_experiment:
+            used_resource_id = resource.get('used_resource_id')
+            resource_id = resource.get('resource_id')
+            node_type = resource.get('node_type')
+            try:
+                log.info("Starting to validate resource of node type: %s" % node_type)
+                validator = get_validator(node_type)
+                log.debug("Got validator %s" % validator)
+                validator.validate(get_resource_from_id(used_resource_id, experimenter_name, experimenter_pwd), used_resource_id, experimenter_name, experimenter_pwd)
+                log.info('\n\n\n')
+                log.info('Validation of resource {}: {}-{} succeeded.\n\n\n'.format(experimenter_name, resource_id, used_resource_id))
+                time.sleep(5)
+                validated_resources.append(['   - {}: {}-{}'.format(experimenter_name, resource_id, used_resource_id), 'OK', ''])
+            except Exception as e:
+                error_message = e.message if isinstance(e, IntegrationTestException) else str(e)
+                log.error('Validation of resource {}: {}-{} failed: {}'.format(experimenter_name, resource_id, used_resource_id, error_message))
+                traceback.print_exc()
+                validated_resources.append(['   - {}: {}-{}'.format(experimenter_name, resource_id, used_resource_id), 'FAILED', '{}: {}'.format(experimenter_name, error_message)])
+                failed_resources.append(resource_id)
+        if len(failed_resources) == 0:
+            add_result(test_results, 'Validate Resources', 'OK', '')
+        else:
+            add_result(test_results, 'Validate Resources', 'FAILED', '{}: {}'.format(experimenter_name, ', '.join(failed_resources)))
+        log.info('Resource validation phase for {} finished.'.format(experimenter_name))
+    for resource in validated_resources:
+        add_result(test_results, resource[0], resource[1], resource[2])
 
-    try:
-        log.info('\n\n\n')
-        log.info("Removing Experiment")
-        delete_experiment()
-        log.info('Removed experiment.\n\n\n')
-        test_results.append(['Delete Experiment', 'OK', ''])
-    except Exception as e:
-        log.error('Failure during removal of experiment.')
-        traceback.print_exc()
-        test_results.append(['Delete Experiment', 'FAILED', str(e)])
+    for experimenter in experimenters:
+        experimenter_name = experimenter[0]
+        experimenter_pwd = experimenter[1]
+        try:
+            log.info('\n\n\n')
+            log.info("Removing Experiment of {}".format(experimenter_name))
+            delete_experiment(experimenter_name, experimenter_pwd)
+            log.info('Removed experiment of {}.\n\n\n'.format(experimenter_name))
+            add_result(test_results, 'Delete Experiment', 'OK', '')
+        except Exception as e:
+            log.error('Failure during removal of experiment of {}.'.format(experimenter_name))
+            traceback.print_exc()
+            add_result(test_results, 'Delete Experiment', 'FAILED', '{}: {}'.format(experimenter_name, str(e)))
+
+    for experimenter in experimenters:
+        experimenter_name = experimenter[0]
+        experimenter_pwd = experimenter[1]
+        delete_experimenter = experimenter[3]
+        if delete_experimenter in ['True', 'true']:
+            try:
+                delete_user(experimenter_name,
+                            executing_user_name=exp_mngr_admin_name, executing_user_pwd=exp_mngr_admin_pwd)
+                log.info('Successfully removed experimenter named \'{}\'.'.format(experimenter_name))
+                add_result(test_results, 'Delete User', 'OK', '')
+            except Exception as e:
+                log.error('Could not remove experimenter named {}.'.format(experimenter_pwd))
+                traceback.print_exc()
+                add_result(test_results, 'Delete User', 'FAILED', '{}: {}'.format(experimenter_name, str(e)))
+
 
     time.sleep(1)  # otherwise the results were printed in the middle of the stack traces
     print()
-    print_results(test_results)
-    __exit_on_failure(test_results)
+    print_results([[r[0], r[1].get('status'), r[1].get('details')] for r in test_results.items()])
+    __exit_on_failure([[r[0], r[1].get('status'), r[1].get('details')] for r in test_results.items()])
 
 
 def __get_experiment_resources(experiment_file_path):
@@ -150,3 +224,28 @@ def __exit_on_failure(test_results):
     for result in [r[1] for r in test_results]:
         if result != 'OK':
             sys.exit(1)
+
+
+def __get_experimenters():
+    """
+    Get the experimenters defined in the integration test configuration file.
+    You can specify just one experimenter with a section called [experimenter]
+    or you can add additional ones by using sections called [experimenter-x] where x is an integer between 0 and 99.
+    In any case the experimenter in section [experimenter] has to be present always.
+    :return:
+    """
+    experimenter_name = get_config_value('experimenter', 'username')
+    experimenter_password = get_config_value('experimenter', 'password')
+    create_experimenter = get_config_value('experimenter', 'create-user', 'True')
+    delete_experimenter = get_config_value('experimenter', 'delete-user', 'True')
+    experimenters = [(experimenter_name, experimenter_password, create_experimenter, delete_experimenter)]
+    for i in range(0, 100):
+        try:
+            experimenter_name = get_config_value('experimenter-{}'.format(i), 'username')
+            experimenter_password = get_config_value('experimenter-{}'.format(i), 'password')
+            create_experimenter = get_config_value('experimenter-{}'.format(i), 'create-user', 'True')
+            delete_experimenter = get_config_value('experimenter-{}'.format(i), 'delete-user', 'True')
+            experimenters.append((experimenter_name, experimenter_password, create_experimenter, delete_experimenter))
+        except (configparser.NoSectionError, configparser.NoOptionError):
+            break
+    return experimenters

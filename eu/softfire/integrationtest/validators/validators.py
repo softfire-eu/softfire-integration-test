@@ -8,7 +8,7 @@ validator_package_name = 'eu.softfire.integrationtest.validators'
 
 class AbstractValidator(metaclass=ABCMeta):
     @abstractmethod
-    def validate(self, resource, resource_id):
+    def validate(self, resource, resource_id, experimenter_name, experimenter_pwd):
         pass
 
 

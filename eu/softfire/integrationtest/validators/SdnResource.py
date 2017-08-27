@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 class SdnResourceValidator(AbstractValidator):
-    def validate(self, resource, resource_id):
+    def validate(self, resource, resource_id, experimenter_name, experimenter_pwd):
         log.debug("Validate SdnResource with id :%s" % resource_id)
         # resource = get_resource_from_id(resource_id) # refresh resource data not needed for static resources
         res_data = json.loads(resource)

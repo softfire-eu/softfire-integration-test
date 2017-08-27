@@ -12,6 +12,7 @@ experiment_manager_ip = get_config_value('experiment-manager', 'ip', 'localhost'
 experiment_manager_port = get_config_value('experiment-manager', 'port', '5080')
 experiment_manager_login_url = 'http://{}:{}/login'.format(experiment_manager_ip, experiment_manager_port)
 experiment_manager_create_user_url = 'http://{}:{}/create_user'.format(experiment_manager_ip, experiment_manager_port)
+experiment_manager_delete_user_url = 'http://{}:{}/delete_user'.format(experiment_manager_ip, experiment_manager_port)
 experiment_manager_upload_experiment_url = 'http://{}:{}/reserve_resources'.format(experiment_manager_ip,
                                                                                    experiment_manager_port)
 experiment_manager_deploy_experiment_url = 'http://{}:{}/provide_resources'.format(experiment_manager_ip,
@@ -66,10 +67,6 @@ def log_in(username, password):
                                    'experiment-manager log in failed for user {}. HTTP response status code was {}, but expected was {}.'.format(
                                        username, log_in_response, 200))
         response_text_dict = json.loads(log_in_response.text)
-        if (not response_text_dict.get('ok')) or response_text_dict.get('ok') == False:
-            error_message = 'experiment-manager log in failed: {}'.format(response_text_dict.get('msg'))
-            log.error(error_message)
-            raise Exception(error_message)
     except ConnectionError as ce:
         error_message = 'Could not connect to the experiment-manager for logging in.'
         log.error(error_message)
@@ -79,6 +76,10 @@ def log_in(username, password):
         error_message = 'Exception while logging into the experiment manager.'
         log.error(error_message)
         traceback.print_exc()
+        raise Exception(error_message)
+    if (not response_text_dict.get('ok')) or response_text_dict.get('ok') == False:
+        error_message = 'experiment-manager log in failed: {}'.format(response_text_dict.get('msg'))
+        log.error(error_message)
         raise Exception(error_message)
     log.debug('Log in succeeded for user {}.'.format(username))
     return session
@@ -90,8 +91,18 @@ def create_user(new_user_name, new_user_pwd, new_user_role, executing_user_name=
     session = log_in(executing_user_name, executing_user_pwd)
     response = session.post(experiment_manager_create_user_url,
                             data={'username': new_user_name, 'password': new_user_pwd, 'role': new_user_role})
+    __validate_response_status(response, 202)
+    log.debug('Triggered the creation of a new user named \'{}\'.'.format(new_user_name))
+
+
+def delete_user(user_name_to_delete, executing_user_name=None, executing_user_pwd=None):
+    executing_user_name, executing_user_pwd = __determine_executing_user(executing_user_name, executing_user_pwd)
+    log.debug('Try to delete the user named \'{}\' as user \'{}\'.'.format(user_name_to_delete, executing_user_name))
+    session = log_in(executing_user_name, executing_user_pwd)
+    response = session.post(experiment_manager_delete_user_url,
+                            data={'username': user_name_to_delete})
     __validate_response_status(response, 200)
-    log.debug('Creation of a new user named \'{}\' succeeded.'.format(new_user_name))
+    log.debug('Creation of a new user named \'{}\' succeeded.'.format(user_name_to_delete))
 
 
 def upload_experiment(experiment_file_path, executing_user_name=None, executing_user_pwd=None):
@@ -106,13 +117,23 @@ def upload_experiment(experiment_file_path, executing_user_name=None, executing_
     log.debug('Upload of experiment succeeded.')
 
 
-def deploy_experiment(executing_user_name=None, executing_user_pwd=None):
-    executing_user_name, executing_user_pwd = __determine_executing_user(executing_user_name, executing_user_pwd)
-    log.debug('Try to deploy experiment as user \'{}\'.'.format(executing_user_name))
-    session = log_in(executing_user_name, executing_user_pwd)
-    response = session.post(experiment_manager_deploy_experiment_url)
-    __validate_response_status(response, 200)
-    log.debug('Deployment of experiment succeeded.')
+def deploy_experiment(executing_user_name=None, executing_user_pwd=None, queue=None):
+    try:
+        executing_user_name, executing_user_pwd = __determine_executing_user(executing_user_name, executing_user_pwd)
+        log.debug('Try to deploy experiment as user \'{}\'.'.format(executing_user_name))
+        session = log_in(executing_user_name, executing_user_pwd)
+        response = session.post(experiment_manager_deploy_experiment_url)
+        __validate_response_status(response, 200)
+        log.debug('Deployment of experiment succeeded.')
+        if queue is not None:
+            queue.put(None)
+    except Exception as e:
+        if queue is not None:
+            traceback.print_exc()
+            queue.put(e)
+        else:
+            raise e
+
 
 
 def delete_experiment(executing_user_name=None, executing_user_pwd=None):

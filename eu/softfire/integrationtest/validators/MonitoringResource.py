@@ -13,7 +13,7 @@ from eu.softfire.integrationtest.validators.validators import AbstractValidator
 log = logging.getLogger(__name__)
 
 class MonitoringResourceValidator(AbstractValidator):
-    def validate(self, resource, resource_id):
+    def validate(self, resource, resource_id, experimenter_name, experimenter_pwd):
         log.debug('Validate MonitoringResource with resource_id: {}'.format(resource_id))
         log.debug('Validate MonitoringResource with resource: {}'.format(resource))
 
