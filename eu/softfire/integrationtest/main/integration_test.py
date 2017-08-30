@@ -38,16 +38,22 @@ def start_integration_test():
     # get config values
     exp_mngr_admin_name = get_config_value('experiment-manager', 'admin-username', 'admin')
     exp_mngr_admin_pwd = get_config_value('experiment-manager', 'admin-password', 'admin')
-    experiment_file_path = get_config_value('experiment', 'experiment-file')
     experimenters = __get_experimenters()
 
-    # retrieve information from experiment file (preparation phase)
-    try:
-        experiment_resources = __get_experiment_resources(experiment_file_path)
-        log.info('Finished preparation phase.')
-    except Exception as e:
-        traceback.print_exc()
-        add_result(test_results, 'Preparation', 'FAILED', str(e))
+    # validate experiment files (preparation phase)
+    preparation_failed = False
+    for experimenter in experimenters:
+        experimenter_name = experimenter[0]
+        experiment_file = experimenter[4]
+        try:
+            __validate_experiment_file(experiment_file)
+        except Exception as e:
+            traceback.print_exc()
+            add_result(test_results, 'Preparation', 'FAILED', '{}: {}'.format(experimenter_name, str(e)))
+            preparation_failed = True
+    log.info('Finished preparation phase.')
+    if preparation_failed:
+        log.error('Preparation phase failed.')
         time.sleep(1)
         print()
         print_results([[r[0], r[1].get('status'), r[1].get('details')] for r in test_results.items()])
@@ -92,12 +98,13 @@ def start_integration_test():
     for experimenter in experimenters:
         experimenter_name = experimenter[0]
         experimenter_pwd = experimenter[1]
+        experiment_file = experimenter[4]
         try:
-            upload_experiment(experiment_file_path, experimenter_name, experimenter_pwd)
-            log.info('Experimenter {} uploaded experiment {}.'.format(experimenter_name, experiment_file_path))
+            upload_experiment(experiment_file, experimenter_name, experimenter_pwd)
+            log.info('Experimenter {} uploaded experiment {}.'.format(experimenter_name, experiment_file))
             add_result(test_results, 'Upload Experiment', 'OK', '')
         except Exception as e:
-            log.error('Experimenter {} could not upload experiment {}.'.format(experimenter_name, experiment_file_path))
+            log.error('Experimenter {} could not upload experiment {}.'.format(experimenter_name, experiment_file))
             traceback.print_exc()
             add_result(test_results, 'Upload Experiment', 'FAILED', '{}: {}'.format(experimenter_name, str(e)))
 
@@ -191,7 +198,7 @@ def start_integration_test():
     __exit_on_failure([[r[0], r[1].get('status'), r[1].get('details')] for r in test_results.items()])
 
 
-def __get_experiment_resources(experiment_file_path):
+def __validate_experiment_file(experiment_file_path):
     experiment_resources = {}
     if not os.path.isfile(experiment_file_path):
         raise FileNotFoundError('Experiment file {} not found'.format(experiment_file_path))
@@ -217,7 +224,6 @@ def __get_experiment_resources(experiment_file_path):
                 if not resource_type:
                     raise Exception('Could not retrieve the type of node {}'.format(node_key))
                 experiment_resources[resource_id] = resource_type
-    return experiment_resources
 
 
 def __exit_on_failure(test_results):
@@ -238,14 +244,16 @@ def __get_experimenters():
     experimenter_password = get_config_value('experimenter', 'password')
     create_experimenter = get_config_value('experimenter', 'create-user', 'True')
     delete_experimenter = get_config_value('experimenter', 'delete-user', 'True')
-    experimenters = [(experimenter_name, experimenter_password, create_experimenter, delete_experimenter)]
+    experiment_file = get_config_value('experimenter', 'experiment')
+    experimenters = [(experimenter_name, experimenter_password, create_experimenter, delete_experimenter, experiment_file)]
     for i in range(0, 100):
         try:
             experimenter_name = get_config_value('experimenter-{}'.format(i), 'username')
             experimenter_password = get_config_value('experimenter-{}'.format(i), 'password')
             create_experimenter = get_config_value('experimenter-{}'.format(i), 'create-user', 'True')
             delete_experimenter = get_config_value('experimenter-{}'.format(i), 'delete-user', 'True')
-            experimenters.append((experimenter_name, experimenter_password, create_experimenter, delete_experimenter))
+            experiment_file = get_config_value('experimenter-{}'.format(i), 'experiment')
+            experimenters.append((experimenter_name, experimenter_password, create_experimenter, delete_experimenter, experiment_file))
         except (configparser.NoSectionError, configparser.NoOptionError):
             break
     return experimenters

@@ -17,6 +17,7 @@ Preparation
 ===========
 Copy the *integration-test.ini* file, which you can find in the project's etc folder, to */etc/softfire/integration-test.ini*.
 Edit it so that it fits for your testing environment.
+The experimenter's *experiment* section expects the path to the experiment file which shall be used for this experimenter in the tests.
 
 
 Test phases
@@ -25,7 +26,7 @@ This section describes the test phases which are executed by the integration tes
 
 Preparation phase
 -----------------
-First of all the integration test checks if the experiment file exists and scans it for the resources it uses.
+First of all the integration test checks if the experiment files exist and appear to be valid.
 If something goes wrong in this phase, the remaining phases will not be executed and the test stops.
 
 
