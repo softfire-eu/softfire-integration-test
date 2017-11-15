@@ -1,0 +1,13 @@
+name: Ubuntu Example
+description: Ubuntu Example.
+provider: TUB
+# this is ignored
+shared: true
+nfvo_version: 5.0.0
+image:
+    upload: false
+    names:
+            - Ubuntu-16.04
+vim_types:
+    - openstack
+
