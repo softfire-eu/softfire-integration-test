@@ -106,7 +106,19 @@ def start_connectivity_test():
         for i in range(wait_nfv_resource_minuties * 20):
             time.sleep(3)
             resource = get_resource_from_id(used_resource_id, experimenter_name, experimenter_pwd)
-            nsr = json.loads(resource)
+            try:
+                nsr = json.loads(resource)
+            except Exception as e:
+                log.error('Could not parse JSON of deployed resource {}: {}'.format(used_resource_id, resource))
+                traceback.print_exc()
+                failures_during_cleanup = cleanup(True, True)
+                print('----------- FAILURE -----------')
+                print('Could not parse JSON of deployed resource {}: {}'.format(used_resource_id, resource))
+                if len(failures_during_cleanup) > 0:
+                    print('Additionally, the following problems occurred during cleanup:')
+                    for problem in failures_during_cleanup:
+                        print(problem)
+                sys.exit(2)
             vnfr_list = nsr.get('vnfr')
             pending_vnfr = []
             for vnfr in vnfr_list:
