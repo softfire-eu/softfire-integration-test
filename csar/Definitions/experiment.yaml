@@ -1,0 +1,24 @@
+--- 
+description: "Template for SoftFIRE yaml resource request definition"
+imports: 
+  - 
+    softfire_node_types: "http://docs.softfire.eu/etc/softfire_node_types.yaml"
+topology_template: 
+  node_templates: 
+
+    mynsd:
+      properties:
+        resource_id: testbed-connectivity
+        testbeds:
+          VDU1: ads
+          VDU2: surrey
+          VDU3: fokus
+          VDU4: fokus-dev
+          VDU5: ericsson
+        ssh_pub_key: ""
+        file_name: "Files/nsd.csar"
+        nsd_name: "testbed-connectivity"
+      type: NfvResource
+
+
+tosca_definitions_version: tosca_simple_yaml_1_0

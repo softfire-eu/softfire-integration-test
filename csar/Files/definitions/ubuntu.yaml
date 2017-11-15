@@ -1,0 +1,308 @@
+description: "NS for deploying a test scenario, checking if the testbeds can reach each other."
+metadata: 
+  ID: Ubuntu Example with fips
+  vendor: TUB
+  version: "5.0.0"
+relationships_template: 
+  rel1: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: adsvm
+    target: surreyvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel2: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: adsvm
+    target: fokusvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel3: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: adsvm
+    target: fokusdevvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel4: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: adsvm
+    target: ericssonvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel5: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: surreyvm
+    target: adsvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel6: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: surreyvm
+    target: fokusvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel7: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: surreyvm
+    target: fokusdevvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel8: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: surreyvm
+    target: ericssonvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel9: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: fokusvm
+    target: surreyvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel10: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: fokusvm
+    target: adsvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel11: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: fokusvm
+    target: fokusdevvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel12: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: fokusvm
+    target: ericssonvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel13: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: fokusdevvm
+    target: surreyvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel14: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: fokusdevvm
+    target: fokusvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel15: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: fokusdevvm
+    target: adsvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel16: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: fokusdevvm
+    target: ericssonvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel17: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: ericssonvm
+    target: surreyvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel18: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: ericssonvm
+    target: fokusvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel19: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: ericssonvm
+    target: fokusdevvm
+    type: tosca.nodes.relationships.ConnectsTo
+  rel20: 
+    parameters:
+      - softfire-internal_floatingIp
+    source: ericssonvm
+    target: adsvm
+    type: tosca.nodes.relationships.ConnectsTo
+
+topology_template: 
+  node_templates: 
+    CP1: 
+      properties: 
+        floatingIP: random
+      requirements: 
+        - virtualBinding: VDU1
+        - virtualLink: softfire-internal
+      type: tosca.nodes.nfv.CP
+    CP2: 
+      properties: 
+        floatingIP: random
+      requirements: 
+        - virtualBinding: VDU2
+        - virtualLink: softfire-internal
+      type: tosca.nodes.nfv.CP
+    CP3: 
+      properties: 
+        floatingIP: random
+      requirements: 
+        - virtualBinding: VDU3
+        - virtualLink: softfire-internal
+      type: tosca.nodes.nfv.CP
+    CP4: 
+      properties: 
+        floatingIP: random
+      requirements: 
+        - virtualBinding: VDU4
+        - virtualLink: softfire-internal
+      type: tosca.nodes.nfv.CP
+    CP5: 
+      properties: 
+        floatingIP: random
+      requirements: 
+        - virtualBinding: VDU5
+        - virtualLink: softfire-internal
+      type: tosca.nodes.nfv.CP
+
+    VDU1: 
+      properties: 
+        scale_in_out: 1
+      requirements: 
+        - virtual_link: CP1
+      type: tosca.nodes.nfv.VDU
+    VDU2: 
+      properties: 
+        scale_in_out: 1
+      requirements: 
+        - virtual_link: CP2
+      type: tosca.nodes.nfv.VDU
+    VDU3: 
+      properties: 
+        scale_in_out: 1
+      requirements: 
+        - virtual_link: CP3
+      type: tosca.nodes.nfv.VDU
+    VDU4: 
+      properties: 
+        scale_in_out: 1
+      requirements: 
+        - virtual_link: CP4
+      type: tosca.nodes.nfv.VDU
+    VDU5:
+      properties: 
+        scale_in_out: 1
+      requirements: 
+        - virtual_link: CP5
+      type: tosca.nodes.nfv.VDU
+
+    adsvm: 
+      interfaces: 
+        lifecycle:
+          CONFIGURE: 
+            - surreyvm_connect.sh
+            - fokusvm_connect.sh
+            - fokusdevvm_connect.sh
+            - ericssonvm_connect.sh
+          START: 
+            - check_results.sh
+      properties:
+        deploymentFlavour: 
+          - flavour_key: m1.small
+        endpoint: generic
+        type: adsvm
+        vendor: TUB
+        version: 16.04
+      requirements: 
+        - virtualLink: softfire-internal
+        - vdu: VDU1
+      type: openbaton.type.VNF
+
+    surreyvm: 
+      interfaces: 
+        lifecycle:
+          CONFIGURE: 
+            - adsvm_connect.sh
+            - fokusvm_connect.sh
+            - fokusdevvm_connect.sh
+            - ericssonvm_connect.sh
+          START: 
+            - check_results.sh
+      properties:
+        deploymentFlavour: 
+          - flavour_key: m1.small
+        endpoint: generic
+        type: surreyvm
+        vendor: TUB
+        version: 16.04
+      requirements: 
+        - virtualLink: softfire-internal
+        - vdu: VDU2
+      type: openbaton.type.VNF
+
+    fokusvm: 
+      interfaces: 
+        lifecycle:
+          CONFIGURE: 
+            - surreyvm_connect.sh
+            - adsvm_connect.sh
+            - fokusdevvm_connect.sh
+            - ericssonvm_connect.sh
+          START: 
+            - check_results.sh
+      properties:
+        deploymentFlavour: 
+          - flavour_key: m1.small
+        endpoint: generic
+        type: fokusvm
+        vendor: TUB
+        version: 16.04
+      requirements: 
+        - virtualLink: softfire-internal
+        - vdu: VDU3
+      type: openbaton.type.VNF
+
+    fokusdevvm: 
+      interfaces: 
+        lifecycle:
+          CONFIGURE: 
+            - surreyvm_connect.sh
+            - fokusvm_connect.sh
+            - adsvm_connect.sh
+            - ericssonvm_connect.sh
+          START: 
+            - check_results.sh
+      properties:
+        deploymentFlavour: 
+          - flavour_key: m1.small
+        endpoint: generic
+        type: fokusdevvm
+        vendor: TUB
+        version: 16.04
+      requirements: 
+        - virtualLink: softfire-internal
+        - vdu: VDU4
+      type: openbaton.type.VNF
+
+    ericssonvm: 
+      interfaces: 
+        lifecycle: 
+          CONFIGURE: 
+            - surreyvm_connect.sh
+            - fokusvm_connect.sh
+            - fokusdevvm_connect.sh
+            - adsvm_connect.sh
+          START: 
+            - check_results.sh
+      properties:
+        deploymentFlavour: 
+          - flavour_key: m1.small
+        endpoint: generic
+        type: ericssonvm
+        vendor: TUB
+        version: 16.04
+      requirements: 
+        - virtualLink: softfire-internal
+        - vdu: VDU5
+      type: openbaton.type.VNF
+    softfire-internal:
+      type: tosca.nodes.nfv.VL
+tosca_definitions_version: tosca_clean_ubuntu
