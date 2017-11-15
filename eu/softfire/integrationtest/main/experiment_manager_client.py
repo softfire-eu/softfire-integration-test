@@ -5,8 +5,7 @@ import traceback
 import requests
 
 from eu.softfire.integrationtest.utils.exceptions import IntegrationTestException
-from eu.softfire.integrationtest.utils.utils import get_config_value
-from eu.softfire.integrationtest.utils.utils import get_logger
+from eu.softfire.integrationtest.utils.utils import get_config_value, get_logger
 
 experiment_manager_ip = get_config_value('experiment-manager', 'ip', 'localhost')
 experiment_manager_port = get_config_value('experiment-manager', 'port', '5080')
@@ -39,7 +38,10 @@ def __determine_executing_user(executing_user_name, executing_user_pwd):
 
 
 def __validate_response_status(response, expected_status, error_message=None):
-    if response.status_code != expected_status:
+    if not isinstance(expected_status, list):
+        expected_status = [expected_status]
+
+    if response.status_code not in expected_status:
         content = response.content
         try:
             content = content.decode('UTF-8')
@@ -63,9 +65,9 @@ def log_in(username, password):
     session = requests.Session()
     try:
         log_in_response = session.post(experiment_manager_login_url, data={'username': username, 'password': password})
-        __validate_response_status(log_in_response, 200,
+        __validate_response_status(log_in_response, [200],
                                    'experiment-manager log in failed for user {}. HTTP response status code was {}, but expected was {}.'.format(
-                                       username, log_in_response, 200))
+                                       username, log_in_response, [200]))
         response_text_dict = json.loads(log_in_response.text)
     except ConnectionError as ce:
         error_message = 'Could not connect to the experiment-manager for logging in.'
@@ -91,7 +93,7 @@ def create_user(new_user_name, new_user_pwd, new_user_role, executing_user_name=
     session = log_in(executing_user_name, executing_user_pwd)
     response = session.post(experiment_manager_create_user_url,
                             data={'username': new_user_name, 'password': new_user_pwd, 'role': new_user_role})
-    __validate_response_status(response, 202)
+    __validate_response_status(response, [200, 202])
     log.debug('Triggered the creation of a new user named \'{}\'.'.format(new_user_name))
 
 
