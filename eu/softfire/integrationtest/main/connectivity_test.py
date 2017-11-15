@@ -120,6 +120,8 @@ def start_connectivity_test():
                         print(problem)
                 sys.exit(2)
             vnfr_list = nsr.get('vnfr')
+            if len(vnfr_list) == 0:
+                continue
             pending_vnfr = []
             for vnfr in vnfr_list:
                 vnfr_status = vnfr.get('status')
