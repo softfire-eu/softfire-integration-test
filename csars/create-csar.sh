@@ -1,29 +1,17 @@
 #!/bin/bash
 
 INNER_CSAR_FILE="nsd.csar"
-INNER_CSAR_FOLDER"Files/"
 
-function do_connectivitytest {
-
-	#tar -c --hard-dereference --dereference -f _tar/${NFNAME}.tar -C $NFNAME vnfd.json Metadata.yaml scripts
-	pushd connectivitytest
-	pushd Files
-	zip -r nsd.csar . -x ".*" -x "*/.*" -x "scripts/common/*"
-	popd
-	zip ../connectivitytest.csar Files/nsd.csar Definitions/experiment.yaml TOSCA-Metadata/TOSCA.meta TOSCA-Metadata/Metadata.yaml
-	popd
-	rm connectivitytest/Files/nsd.csar
-}
 
 function create_csar {
 	PACKAGENAME=$1
 	if [ ! -z $PACKAGENAME -a -d $PACKAGENAME -a -d ${PACKAGENAME}/Files ]; then
 		pushd $PACKAGENAME
 		pushd Files
-		zip -r nsd.csar . -x ".*" -x "*/.*" -x "scripts/common/*"
+		zip -r $INNER_CSAR_FILE . -x ".*" -x "*/.*" -x "scripts/common/*"
 		popd
-		zip ../${PACKAGENAME}.csar Files/nsd.csar Definitions/experiment.yaml TOSCA-Metadata/TOSCA.meta TOSCA-Metadata/Metadata.yaml
-		rm Files/nsd.csar
+		zip ../${PACKAGENAME}.csar Files/${INNER_CSAR_FILE} Definitions/experiment.yaml TOSCA-Metadata/TOSCA.meta TOSCA-Metadata/Metadata.yaml
+		rm Files/${INNER_CSAR_FILE}
 		popd
 	fi
 }
