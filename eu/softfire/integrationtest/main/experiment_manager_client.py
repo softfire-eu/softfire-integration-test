@@ -86,7 +86,7 @@ def delete_user(user_name_to_delete, session):
     response = session.post(experiment_manager_delete_user_url,
                             data={'username': user_name_to_delete})
     __validate_response_status(response, 200)
-    log.debug('Creation of a new user named \'{}\' succeeded.'.format(user_name_to_delete))
+    log.debug('Deletion of user \'{}\' succeeded.'.format(user_name_to_delete))
 
 
 def upload_experiment(experiment_file_path, session):
