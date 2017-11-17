@@ -1,0 +1,11 @@
+description: "Template for SoftFIRE yaml resource request definition"
+imports:
+  - softfire_node_types: "http://docs.softfire.eu/etc/softfire_node_types.yaml"
+topology_template:
+  node_templates:
+    testue:
+      properties:
+        resource_id: surrey-ue
+        resource_name: testue
+      type: PhysicalResource
+tosca_definitions_version: tosca_simple_yaml_1_0

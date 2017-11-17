@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+
+
+from eu.softfire.integrationtest.main.ue_resv_engine_test import start_ue_resv_engine_test
+
+if __name__ == '__main__':
+    start_ue_resv_engine_test()
