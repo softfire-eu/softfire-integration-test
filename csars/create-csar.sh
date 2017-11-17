@@ -1,7 +1,7 @@
 #!/bin/bash
 
 INNER_CSAR_FILE="nsd.csar"
-
+DELETE_INNER_CSAR=true
 
 function create_csar {
 	PACKAGENAME=$1
@@ -11,7 +11,7 @@ function create_csar {
 		zip -r $INNER_CSAR_FILE . -x ".*" -x "*/.*" -x "scripts/common/*"
 		popd
 		zip ../${PACKAGENAME}.csar Files/${INNER_CSAR_FILE} Definitions/experiment.yaml TOSCA-Metadata/TOSCA.meta TOSCA-Metadata/Metadata.yaml
-		rm Files/${INNER_CSAR_FILE}
+		${DELETE_INNER_CSAR} && rm Files/${INNER_CSAR_FILE}
 		popd
 	fi
 }
