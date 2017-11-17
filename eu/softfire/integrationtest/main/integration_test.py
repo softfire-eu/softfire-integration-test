@@ -38,6 +38,7 @@ def start_integration_test():
     # get config values
     exp_mngr_admin_name = get_config_value('experiment-manager', 'admin-username', 'admin')
     exp_mngr_admin_pwd = get_config_value('experiment-manager', 'admin-password', 'admin')
+    admin_session = log_in(exp_mngr_admin_name, exp_mngr_admin_pwd)
     experimenters = __get_experimenters()
 
     # validate experiment files (preparation phase)
@@ -67,8 +68,7 @@ def start_integration_test():
         create_experimenter = experimenter[2]
         if create_experimenter in ['True', 'true']:
             try:
-                create_user(experimenter_name, experimenter_pwd, 'experimenter',
-                            executing_user_name=exp_mngr_admin_name, executing_user_pwd=exp_mngr_admin_pwd)
+                create_user(experimenter_name, experimenter_pwd, 'experimenter', admin_session)
                 log.info('Triggered the creation of a new experimenter named \'{}\'.'.format(experimenter_name))
             except Exception as e:
                 log.error('Could not trigger the creation of a new experimenter named {}.'.format(experimenter_pwd))
@@ -99,8 +99,9 @@ def start_integration_test():
         experimenter_name = experimenter[0]
         experimenter_pwd = experimenter[1]
         experiment_file = experimenter[4]
+        user_session = log_in(experimenter_name, experimenter_pwd)
         try:
-            upload_experiment(experiment_file, experimenter_name, experimenter_pwd)
+            upload_experiment(experiment_file, user_session)
             log.info('Experimenter {} uploaded experiment {}.'.format(experimenter_name, experiment_file))
             add_result(test_results, 'Upload Experiment', 'OK', '')
         except Exception as e:
@@ -112,8 +113,9 @@ def start_integration_test():
     for experimenter in experimenters:
         experimenter_name = experimenter[0]
         experimenter_pwd = experimenter[1]
+        user_session = log_in(experimenter_name, experimenter_pwd)
         q = queue.Queue()
-        t = threading.Thread(target=deploy_experiment, args=(experimenter_name, experimenter_pwd, q,), name=experimenter_name)
+        t = threading.Thread(target=deploy_experiment, args=(user_session, q,), name=experimenter_name)
         deployment_threads_queues.append((t, q))
     for (t, q) in deployment_threads_queues:
         log.info('Deploy experiment of experimenter {}'.format(t.name))
@@ -134,7 +136,8 @@ def start_integration_test():
         experimenter_name = experimenter[0]
         experimenter_pwd = experimenter[1]
         failed_resources = []
-        deployed_experiment = get_experiment_status(experimenter_name, experimenter_pwd)
+        user_session = log_in(experimenter_name, experimenter_pwd)
+        deployed_experiment = get_experiment_status(user_session)
         for resource in deployed_experiment:
             used_resource_id = resource.get('used_resource_id')
             resource_id = resource.get('resource_id')
@@ -143,7 +146,7 @@ def start_integration_test():
                 log.info("Starting to validate resource of node type: %s" % node_type)
                 validator = get_validator(node_type)
                 log.debug("Got validator %s" % validator)
-                validator.validate(get_resource_from_id(used_resource_id, experimenter_name, experimenter_pwd), used_resource_id, experimenter_name, experimenter_pwd)
+                validator.validate(get_resource_from_id(used_resource_id, session=user_session), used_resource_id, user_session)
                 log.info('\n\n\n')
                 log.info('Validation of resource {}: {}-{} succeeded.\n\n\n'.format(experimenter_name, resource_id, used_resource_id))
                 time.sleep(5)
@@ -165,10 +168,11 @@ def start_integration_test():
     for experimenter in experimenters:
         experimenter_name = experimenter[0]
         experimenter_pwd = experimenter[1]
+        user_session = log_in(experimenter_name, experimenter_pwd)
         try:
             log.info('\n\n\n')
             log.info("Removing Experiment of {}".format(experimenter_name))
-            delete_experiment(experimenter_name, experimenter_pwd)
+            delete_experiment(user_session)
             log.info('Removed experiment of {}.\n\n\n'.format(experimenter_name))
             add_result(test_results, 'Delete Experiment', 'OK', '')
         except Exception as e:
@@ -182,8 +186,7 @@ def start_integration_test():
         delete_experimenter = experimenter[3]
         if delete_experimenter in ['True', 'true']:
             try:
-                delete_user(experimenter_name,
-                            executing_user_name=exp_mngr_admin_name, executing_user_pwd=exp_mngr_admin_pwd)
+                delete_user(experimenter_name, admin_session)
                 log.info('Successfully removed experimenter named \'{}\'.'.format(experimenter_name))
                 add_result(test_results, 'Delete User', 'OK', '')
             except Exception as e:

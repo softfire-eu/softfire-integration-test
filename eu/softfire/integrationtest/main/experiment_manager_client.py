@@ -23,20 +23,6 @@ experiment_manager_get_status_url = 'http://{}:{}/get_status'.format(experiment_
 log = get_logger(__name__)
 
 
-def __determine_executing_user(executing_user_name, executing_user_pwd):
-    """
-    Auxiliary method for retrieving the user credentials that shall be used.
-    :param executing_user_name:
-    :param executing_user_pwd:
-    :return:
-    """
-    if not executing_user_name:
-        executing_user_name = get_config_value('experimenter', 'username')
-    if not executing_user_pwd:
-        executing_user_pwd = get_config_value('experimenter', 'password')
-    return executing_user_name, executing_user_pwd
-
-
 def __validate_response_status(response, expected_status, error_message=None):
     if not isinstance(expected_status, list):
         expected_status = [expected_status]
@@ -87,43 +73,35 @@ def log_in(username, password):
     return session
 
 
-def create_user(new_user_name, new_user_pwd, new_user_role, executing_user_name=None, executing_user_pwd=None):
-    executing_user_name, executing_user_pwd = __determine_executing_user(executing_user_name, executing_user_pwd)
-    log.debug('Try to create a new user named \'{}\' as user \'{}\'.'.format(new_user_name, executing_user_name))
-    session = log_in(executing_user_name, executing_user_pwd)
+def create_user(new_user_name, new_user_pwd, new_user_role, session):
+    log.debug('Try to create a new user named \'{}\'.'.format(new_user_name))
     response = session.post(experiment_manager_create_user_url,
                             data={'username': new_user_name, 'password': new_user_pwd, 'role': new_user_role})
     __validate_response_status(response, [200, 202])
     log.debug('Triggered the creation of a new user named \'{}\'.'.format(new_user_name))
 
 
-def delete_user(user_name_to_delete, executing_user_name=None, executing_user_pwd=None):
-    executing_user_name, executing_user_pwd = __determine_executing_user(executing_user_name, executing_user_pwd)
-    log.debug('Try to delete the user named \'{}\' as user \'{}\'.'.format(user_name_to_delete, executing_user_name))
-    session = log_in(executing_user_name, executing_user_pwd)
+def delete_user(user_name_to_delete, session):
+    log.debug('Try to delete the user named \'{}\'.'.format(user_name_to_delete))
     response = session.post(experiment_manager_delete_user_url,
                             data={'username': user_name_to_delete})
     __validate_response_status(response, 200)
     log.debug('Creation of a new user named \'{}\' succeeded.'.format(user_name_to_delete))
 
 
-def upload_experiment(experiment_file_path, executing_user_name=None, executing_user_pwd=None):
-    executing_user_name, executing_user_pwd = __determine_executing_user(executing_user_name, executing_user_pwd)
-    log.debug('Try to upload experiment as user \'{}\'.'.format(executing_user_name))
+def upload_experiment(experiment_file_path, session):
+    log.debug('Try to upload experiment.')
     if not os.path.isfile(experiment_file_path):
         raise FileNotFoundError('Experiment file {} not found'.format(experiment_file_path))
     with open(experiment_file_path, 'rb') as experiment_file:
-        session = log_in(executing_user_name, executing_user_pwd)
         response = session.post(experiment_manager_upload_experiment_url, files={'data': experiment_file})
     __validate_response_status(response, 200)
     log.debug('Upload of experiment succeeded.')
 
 
-def deploy_experiment(executing_user_name=None, executing_user_pwd=None, queue=None):
+def deploy_experiment(session, queue=None):
     try:
-        executing_user_name, executing_user_pwd = __determine_executing_user(executing_user_name, executing_user_pwd)
-        log.debug('Try to deploy experiment as user \'{}\'.'.format(executing_user_name))
-        session = log_in(executing_user_name, executing_user_pwd)
+        log.debug('Try to deploy experiment.')
         response = session.post(experiment_manager_deploy_experiment_url)
         __validate_response_status(response, 200)
         log.debug('Deployment of experiment succeeded.')
@@ -138,32 +116,26 @@ def deploy_experiment(executing_user_name=None, executing_user_pwd=None, queue=N
 
 
 
-def delete_experiment(executing_user_name=None, executing_user_pwd=None):
-    executing_user_name, executing_user_pwd = __determine_executing_user(executing_user_name, executing_user_pwd)
-    log.debug('Try to remove experiment as user \'{}\'.'.format(executing_user_name))
-    session = log_in(executing_user_name, executing_user_pwd)
+def delete_experiment(session):
+    log.debug('Try to remove experiment.')
     response = session.post(experiment_manager_delete_experiment_url)
     __validate_response_status(response, 200)
     log.debug('Removal of experiment succeeded.')
 
 
-def get_experiment_status(executing_user_name=None, executing_user_pwd=None):
-    executing_user_name, executing_user_pwd = __determine_executing_user(executing_user_name, executing_user_pwd)
-    log.debug('Try to get the experiement\'s status as user \'{}\'.'.format(executing_user_name))
-    session = log_in(executing_user_name, executing_user_pwd)
+def get_experiment_status(session):
+    log.debug('Try to get the experiement\'s status.')
     response = session.get(experiment_manager_get_status_url)
     __validate_response_status(response, 200)
     # log.debug('Successfully fetched experiment status: {}'.format(response.text))
     return json.loads(response.text)
 
 
-def get_resource_from_id(used_resource_id, executing_user_name=None, executing_user_pwd=None):
-    resources = get_experiment_status(executing_user_name, executing_user_pwd)
+def get_resource_from_id(used_resource_id, session):
+    resources = get_experiment_status(session)
     for res in resources:
         if res.get('used_resource_id') == used_resource_id:
             return res.get('value').strip("'")
     raise IntegrationTestException("Resource with id %s not found" % used_resource_id)
 
 
-if __name__ == '__main__':
-    print(get_experiment_status())

@@ -38,6 +38,7 @@ def start_ue_resv_engine_test():
     # get config values
     exp_mngr_admin_name = get_config_value('experiment-manager', 'admin-username', 'admin')
     exp_mngr_admin_pwd = get_config_value('experiment-manager', 'admin-password', 'admin')
+    admin_session = log_in(exp_mngr_admin_name, exp_mngr_admin_pwd)
     experimenters = __get_experimenters()
 
     # validate experiment files (preparation phase)
@@ -67,8 +68,7 @@ def start_ue_resv_engine_test():
         create_experimenter = experimenter[2]
         if create_experimenter in ['True', 'true']:
             try:
-                create_user(experimenter_name, experimenter_pwd, 'experimenter',
-                            executing_user_name=exp_mngr_admin_name, executing_user_pwd=exp_mngr_admin_pwd)
+                create_user(experimenter_name, experimenter_pwd, 'experimenter', admin_session)
                 log.info('Triggered the creation of a new experimenter named \'{}\'.'.format(experimenter_name))
             except Exception as e:
                 log.error('Could not trigger the creation of a new experimenter named {}.'.format(experimenter_pwd))
@@ -100,8 +100,9 @@ def start_ue_resv_engine_test():
         experimenter_name = experimenter[0]
         experimenter_pwd = experimenter[1]
         experiment_file = experimenter[4] # defined in config
+        user_session = log_in(experimenter_name, experimenter_pwd)
         try:
-            upload_experiment(experiment_file, experimenter_name, experimenter_pwd)
+            upload_experiment(experiment_file, user_session)
             log.info('Experimenter {} uploaded experiment {}.'.format(experimenter_name, experiment_file))
             add_result(test_results, 'Upload Experiment', 'OK', '')
         except Exception as e:
@@ -113,10 +114,11 @@ def start_ue_resv_engine_test():
     for experimenter in experimenters:
         experimenter_name = experimenter[0]
         experimenter_pwd = experimenter[1]
+        user_session = log_in(experimenter_name, experimenter_pwd)
         try:
             log.info('\n\n\n')
             log.info("Removing Experiment of {}".format(experimenter_name))
-            delete_experiment(experimenter_name, experimenter_pwd)
+            delete_experiment(user_session)
             log.info('Removed experiment of {}.\n\n\n'.format(experimenter_name))
             add_result(test_results, 'Delete Experiment', 'OK', '')
         except Exception as e:
@@ -131,8 +133,7 @@ def start_ue_resv_engine_test():
         delete_experimenter = experimenter[3]
         if delete_experimenter in ['True', 'true']:
             try:
-                delete_user(experimenter_name,
-                            executing_user_name=exp_mngr_admin_name, executing_user_pwd=exp_mngr_admin_pwd)
+                delete_user(experimenter_name, admin_session)
                 log.info('Successfully removed experimenter named \'{}\'.'.format(experimenter_name))
                 add_result(test_results, 'Delete User', 'OK', '')
             except Exception as e:

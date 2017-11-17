@@ -39,11 +39,12 @@ def start_connectivity_test():
     connection_problems = []
     additional_problems = []
 
+    admin_session = log_in(exp_mngr_admin_name, exp_mngr_admin_pwd)
+
     # create experimenter
     if create_experimenter in ['True', 'true']:
         try:
-            create_user(experimenter_name, experimenter_pwd, 'experimenter',
-                        executing_user_name=exp_mngr_admin_name, executing_user_pwd=exp_mngr_admin_pwd)
+            create_user(experimenter_name, experimenter_pwd, 'experimenter', admin_session)
             log.info('Triggered the creation of a new experimenter named \'{}\'.'.format(experimenter_name))
         except Exception as e:
             log.error('Could not trigger the creation of a new experimenter named {}.'.format(experimenter_pwd))
@@ -59,7 +60,7 @@ def start_connectivity_test():
         for i in range(0, 18):
             time.sleep(5)
             try:
-                log_in(experimenter_name, experimenter_pwd)
+                user_session = log_in(experimenter_name, experimenter_pwd)
                 log.debug('Experimenter {} seems to be created successfully.'.format(experimenter_name))
                 break
             except:
@@ -69,14 +70,16 @@ def start_connectivity_test():
             print('----------- FAILURE -----------')
             print('Experimenter {} seems not to exist after creation.'.format(experimenter_name))
             sys.exit(2)
+    else:
+        user_session = log_in(experimenter_name, experimenter_pwd)
 
     try:
-        upload_experiment(experiment_file_path, experimenter_name, experimenter_pwd)
+        upload_experiment(experiment_file_path, session=user_session)
         log.info('Experimenter {} uploaded experiment {}.'.format(experimenter_name, experiment_file_path))
     except Exception as e:
         log.error('Experimenter {} could not upload experiment {}.'.format(experimenter_name, experiment_file_path))
         traceback.print_exc()
-        failures_during_cleanup = cleanup(True, False)
+        failures_during_cleanup = cleanup(True, False, admin_session)
         print('----------- FAILURE -----------')
         print('Upload of experiment failed.')
         if len(failures_during_cleanup) > 0:
@@ -86,11 +89,11 @@ def start_connectivity_test():
         sys.exit(2)
 
     try:
-        deploy_experiment(experimenter_name, experimenter_pwd)
+        deploy_experiment(user_session)
     except Exception as e:
         traceback.print_exc()
         log.error('The experiment\'s deployment failed for experimenter {}: {}'.format(experimenter_name, str(e)))
-        failures_during_cleanup = cleanup(True, False)
+        failures_during_cleanup = cleanup(True, False, admin_session)
         print('----------- FAILURE -----------')
         print('Deployment of experiment failed.')
         if len(failures_during_cleanup) > 0:
@@ -99,19 +102,19 @@ def start_connectivity_test():
                 print(problem)
         sys.exit(2)
 
-    deployed_experiment = get_experiment_status(experimenter_name, experimenter_pwd)
+    deployed_experiment = get_experiment_status(user_session)
     for resource in deployed_experiment:
         used_resource_id = resource.get('used_resource_id')
         # wait at most about 7 minutes for the NSR to reach active or error state
         for i in range(wait_nfv_resource_minuties * 20):
             time.sleep(3)
-            resource = get_resource_from_id(used_resource_id, experimenter_name, experimenter_pwd)
+            resource = get_resource_from_id(used_resource_id, user_session)
             try:
                 nsr = json.loads(resource)
             except Exception as e:
                 log.error('Could not parse JSON of deployed resource {}: {}'.format(used_resource_id, resource))
                 traceback.print_exc()
-                failures_during_cleanup = cleanup(True, True)
+                failures_during_cleanup = cleanup(True, True, admin_session, user_session)
                 print('----------- FAILURE -----------')
                 print('Could not parse JSON of deployed resource {}: {}'.format(used_resource_id, resource))
                 if len(failures_during_cleanup) > 0:
@@ -140,7 +143,7 @@ def start_connectivity_test():
         else:
             log.error('Timeout: After {} minutes there are VNFRs not yet in ACTIVE or ERROR state: {}'.format(
                 wait_nfv_resource_minuties, ', '.join(status_of_vnfrs)))
-            failures_during_cleanup = cleanup(True, True)
+            failures_during_cleanup = cleanup(True, True, admin_session, user_session)
             print('----------- FAILURE -----------')
             print('Timeout: After {} minutes there are VNFRs not yet in ACTIVE or ERROR state: {}'.format(
                 wait_nfv_resource_minuties, ', '.join(status_of_vnfrs)))
@@ -171,7 +174,7 @@ def start_connectivity_test():
 
     try:
         log.info("Removing experiment of {}".format(experimenter_name))
-        delete_experiment(experimenter_name, experimenter_pwd)
+        delete_experiment(user_session)
         log.info('Removed experiment of {}.\n\n\n'.format(experimenter_name))
     except Exception as e:
         log.error('Failure during removal of experiment of {}.'.format(experimenter_name))
@@ -180,8 +183,7 @@ def start_connectivity_test():
 
     if delete_experimenter in ['True', 'true']:
         try:
-            delete_user(experimenter_name,
-                        executing_user_name=exp_mngr_admin_name, executing_user_pwd=exp_mngr_admin_pwd)
+            delete_user(experimenter_name, admin_session)
             log.info('Successfully removed experimenter named \'{}\'.'.format(experimenter_name))
         except Exception as e:
             log.error('Could not remove experimenter named {}.'.format(experimenter_pwd))
@@ -207,13 +209,13 @@ def start_connectivity_test():
             sys.exit(0)
 
 
-def cleanup(user_created, experiment_deployed):
+def cleanup(user_created, experiment_deployed, admin_session=None, user_session=None):
     log.debug("Cleanup after a failure.")
     failures_during_cleanup = []
     if experiment_deployed:
         try:
             log.info("Removing experiment of {}".format(experimenter_name))
-            delete_experiment(experimenter_name, experimenter_pwd)
+            delete_experiment(user_session)
             log.info('Removed experiment of {}.\n\n\n'.format(experimenter_name))
         except Exception as e:
             failures_during_cleanup.append('Failure during removal of experiment of {}.'.format(experimenter_name))
@@ -222,8 +224,7 @@ def cleanup(user_created, experiment_deployed):
     if user_created:
         if delete_experimenter in ['True', 'true']:
             try:
-                delete_user(experimenter_name,
-                            executing_user_name=exp_mngr_admin_name, executing_user_pwd=exp_mngr_admin_pwd)
+                delete_user(experimenter_name, admin_session)
                 log.info('Successfully removed experimenter named \'{}\'.'.format(experimenter_name))
             except Exception as e:
                 failures_during_cleanup.append('Could not remove experimenter named {}.'.format(experimenter_pwd))
