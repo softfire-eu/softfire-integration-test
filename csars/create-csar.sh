@@ -16,7 +16,7 @@ function create_csar {
 	fi
 }
 
-## this function will create links from the common scripipts folder to the machine tpe specifit folders
+## this function will create links from the common scripts folder to the machine tpe specific folders
 function create_links_nsd {
 	pushd Files/scripts
 	for d in adsvm ericssonvm fokusdevvm fokusvm surreyvm; do

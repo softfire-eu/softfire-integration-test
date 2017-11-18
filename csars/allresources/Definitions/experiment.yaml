@@ -21,6 +21,7 @@ topology_template:
     myphysiscal:
       properties:
         resource_id: fokus-cell
+        resource_name: fokus-cell
       type: PhysicalResource
 
 #    sdn_fokus_dev:
