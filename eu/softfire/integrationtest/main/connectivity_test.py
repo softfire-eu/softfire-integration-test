@@ -19,7 +19,7 @@ experimenter_pwd = get_config_value('connectivity-test', 'password')
 create_experimenter = get_config_value('connectivity-test', 'create-user', 'True')
 delete_experimenter = get_config_value('connectivity-test', 'delete-user', 'True')
 experiment_file_path = get_config_value('connectivity-test', 'experiment')
-wait_nfv_resource_minuties = int(get_config_value('nfv-resource', 'wait-nfv-res-min', '7'))
+wait_nfv_resource_minuties = int(get_config_value('nfv-resource', 'wait-nfv-res-min', '10'))
 
 
 def add_result(result_dict, phase, status, details):
@@ -152,25 +152,24 @@ def start_connectivity_test():
                 for problem in failures_during_cleanup:
                     print(problem)
             sys.exit(2)
-
     vnfr_list = nsr.get('vnfr')
     for vnfr in vnfr_list:
         vnfr_status = vnfr.get('status')
         if vnfr_status == 'ERROR':
-            lifecycle_event_history = vnfr.get('lifecycle_event_history')
-            for lifecycle_event in lifecycle_event_history:
-                if lifecycle_event.get('event') == 'ERROR':
-                    description = lifecycle_event.get('description')
-                    if '00000' in description and '11111' in description and '22222' in description:
-                        _, description = description.split('00000')
-                        testbed, not_reachable = description.split('11111')
-                        not_reachable, _ = not_reachable.split('22222')
-                        not_reachable = not_reachable.split(' ')
-                        for tb in not_reachable:
-                            connection_problems.append('{} testbed could not ping {} testbed.'.format(testbed, tb))
-                    else:
-                        additional_problems.append(
-                            'VNFR {} has an ERROR lifecycle event: {}'.format(vnfr.get('name'), description))
+            failed_lifecycle_events = vnfr.get('failed lifecycle events')
+            for lifecycle_event in failed_lifecycle_events:
+                if '0ICMP0' in lifecycle_event or '0TCP0' in lifecycle_event or '0UDP' in lifecycle_event:
+                    for protocol in ['ICMP', 'UDP', 'TCP']:
+                        if '0{}0'.format(protocol) in lifecycle_event and '1{}1'.format(protocol) in lifecycle_event and '2{}2'.format(protocol) in lifecycle_event:
+                            _, description = lifecycle_event.split('0{}0'.format(protocol))
+                            testbed, not_reachable = description.split('1{}1'.format(protocol))
+                            not_reachable, _ = not_reachable.split('2{}2'.format(protocol))
+                            not_reachable = not_reachable.split(' ')
+                            for tb in not_reachable:
+                                connection_problems.append('{} testbed could not connect to {} testbed via {}.'.format(testbed, tb, protocol))
+                else:
+                    additional_problems.append(
+                        'VNFR {} has an ERROR lifecycle event: {}'.format(vnfr.get('name'), lifecycle_event))
 
     try:
         log.info("Removing experiment of {}".format(experimenter_name))
@@ -192,7 +191,8 @@ def start_connectivity_test():
     time.sleep(1)  # otherwise the results were printed in the middle of the stack traces
     if len(connection_problems) > 0:
         print('---------- CONNECTION PROBLEMS ----------')
-        # TODO
+        for problem in connection_problems:
+            print(problem)
         if len(additional_problems) > 0:
             print('AND there are additional problems unrelated to the testbed connectivity:')
             for problem in additional_problems:

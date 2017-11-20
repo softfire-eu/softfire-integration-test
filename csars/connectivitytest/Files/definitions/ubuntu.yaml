@@ -7,120 +7,160 @@ relationships_template:
   rel1:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: adsvm
     target: surreyvm
     type: tosca.nodes.relationships.ConnectsTo
   rel2:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: adsvm
     target: fokusvm
     type: tosca.nodes.relationships.ConnectsTo
   rel3:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: adsvm
     target: fokusdevvm
     type: tosca.nodes.relationships.ConnectsTo
   rel4:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: adsvm
     target: ericssonvm
     type: tosca.nodes.relationships.ConnectsTo
   rel5:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: surreyvm
     target: adsvm
     type: tosca.nodes.relationships.ConnectsTo
   rel6:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: surreyvm
     target: fokusvm
     type: tosca.nodes.relationships.ConnectsTo
   rel7:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: surreyvm
     target: fokusdevvm
     type: tosca.nodes.relationships.ConnectsTo
   rel8:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: surreyvm
     target: ericssonvm
     type: tosca.nodes.relationships.ConnectsTo
   rel9:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: fokusvm
     target: surreyvm
     type: tosca.nodes.relationships.ConnectsTo
   rel10:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: fokusvm
     target: adsvm
     type: tosca.nodes.relationships.ConnectsTo
   rel11:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: fokusvm
     target: fokusdevvm
     type: tosca.nodes.relationships.ConnectsTo
   rel12:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: fokusvm
     target: ericssonvm
     type: tosca.nodes.relationships.ConnectsTo
   rel13:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: fokusdevvm
     target: surreyvm
     type: tosca.nodes.relationships.ConnectsTo
   rel14:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: fokusdevvm
     target: fokusvm
     type: tosca.nodes.relationships.ConnectsTo
   rel15:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: fokusdevvm
     target: adsvm
     type: tosca.nodes.relationships.ConnectsTo
   rel16:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: fokusdevvm
     target: ericssonvm
     type: tosca.nodes.relationships.ConnectsTo
   rel17:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: ericssonvm
     target: surreyvm
     type: tosca.nodes.relationships.ConnectsTo
   rel18:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: ericssonvm
     target: fokusvm
     type: tosca.nodes.relationships.ConnectsTo
   rel19:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: ericssonvm
     target: fokusdevvm
     type: tosca.nodes.relationships.ConnectsTo
   rel20:
     parameters:
       - softfire-internal_floatingIp
+      - tcp_port
+      - udp_port
     source: ericssonvm
     target: adsvm
     type: tosca.nodes.relationships.ConnectsTo
@@ -197,6 +237,8 @@ topology_template:
     adsvm:
       interfaces:
         lifecycle:
+          INSTANTIATE:
+            - install.sh
           CONFIGURE:
             - surreyvm_connect.sh
             - fokusvm_connect.sh
@@ -205,6 +247,11 @@ topology_template:
           START:
             - check_results.sh
       properties:
+        configurations:
+          name: adsconfig
+          configurationParameters:
+            - tcp_port: '45678'
+            - udp_port: '45677'
         deploymentFlavour:
           - flavour_key: m1.small
         endpoint: generic
@@ -219,6 +266,8 @@ topology_template:
     surreyvm:
       interfaces:
         lifecycle:
+          INSTANTIATE:
+            - install.sh
           CONFIGURE:
             - adsvm_connect.sh
             - fokusvm_connect.sh
@@ -227,6 +276,11 @@ topology_template:
           START:
             - check_results.sh
       properties:
+        configurations:
+          name: surreyconfig
+          configurationParameters:
+            - tcp_port: '45678'
+            - udp_port: '45677'
         deploymentFlavour:
           - flavour_key: m1.small
         endpoint: generic
@@ -241,6 +295,8 @@ topology_template:
     fokusvm:
       interfaces:
         lifecycle:
+          INSTANTIATE:
+            - install.sh
           CONFIGURE:
             - surreyvm_connect.sh
             - adsvm_connect.sh
@@ -249,6 +305,11 @@ topology_template:
           START:
             - check_results.sh
       properties:
+        configurations:
+          name: fokusconfig
+          configurationParameters:
+            - tcp_port: '45678'
+            - udp_port: '45677'
         deploymentFlavour:
           - flavour_key: m1.small
         endpoint: generic
@@ -263,6 +324,8 @@ topology_template:
     fokusdevvm:
       interfaces:
         lifecycle:
+          INSTANTIATE:
+            - install.sh
           CONFIGURE:
             - surreyvm_connect.sh
             - fokusvm_connect.sh
@@ -271,6 +334,11 @@ topology_template:
           START:
             - check_results.sh
       properties:
+        configurations:
+          name: fokusdevconfig
+          configurationParameters:
+            - tcp_port: '45678'
+            - udp_port: '45677'
         deploymentFlavour:
           - flavour_key: m1.small
         endpoint: generic
@@ -285,6 +353,8 @@ topology_template:
     ericssonvm:
       interfaces:
         lifecycle:
+          INSTANTIATE:
+            - install.sh
           CONFIGURE:
             - surreyvm_connect.sh
             - fokusvm_connect.sh
@@ -293,6 +363,11 @@ topology_template:
           START:
             - check_results.sh
       properties:
+        configurations:
+          name: ericssonconfig
+          configurationParameters:
+            - tcp_port: '45678'
+            - udp_port: '45677'
         deploymentFlavour:
           - flavour_key: m1.small
         endpoint: generic
