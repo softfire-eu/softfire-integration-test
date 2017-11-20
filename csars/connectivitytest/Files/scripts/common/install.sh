@@ -1,11 +1,11 @@
 #!/bin/bash
 
-if [-z $tcp_port]; then
+if [ -z $tcp_port ]; then
   >&2 echo "TCP port is not set, you have to define it in the NSD as tcp_port configuration parameter"
   exit 1
 fi
 
-if [-z $udp_port]; then
+if [ -z $udp_port ]; then
   >&2 echo "UDP port is not set, you have to define it in the NSD as udp_port configuration parameter"
   exit 1
 fi
