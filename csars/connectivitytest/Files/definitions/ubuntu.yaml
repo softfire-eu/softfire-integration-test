@@ -250,8 +250,8 @@ topology_template:
         configurations:
           name: adsconfig
           configurationParameters:
-            - tcp_port: '45678'
-            - udp_port: '45677'
+            - tcp_port: '5002'
+            - udp_port: '5003'
         deploymentFlavour:
           - flavour_key: m1.small
         endpoint: generic
@@ -279,8 +279,8 @@ topology_template:
         configurations:
           name: surreyconfig
           configurationParameters:
-            - tcp_port: '45678'
-            - udp_port: '45677'
+            - tcp_port: '5002'
+            - udp_port: '5003'
         deploymentFlavour:
           - flavour_key: m1.small
         endpoint: generic
@@ -308,8 +308,8 @@ topology_template:
         configurations:
           name: fokusconfig
           configurationParameters:
-            - tcp_port: '45678'
-            - udp_port: '45677'
+            - tcp_port: '5002'
+            - udp_port: '5003'
         deploymentFlavour:
           - flavour_key: m1.small
         endpoint: generic
@@ -337,8 +337,8 @@ topology_template:
         configurations:
           name: fokusdevconfig
           configurationParameters:
-            - tcp_port: '45678'
-            - udp_port: '45677'
+            - tcp_port: '5002'
+            - udp_port: '5003'
         deploymentFlavour:
           - flavour_key: m1.small
         endpoint: generic
@@ -366,8 +366,8 @@ topology_template:
         configurations:
           name: ericssonconfig
           configurationParameters:
-            - tcp_port: '45678'
-            - udp_port: '45677'
+            - tcp_port: '5002'
+            - udp_port: '5003'
         deploymentFlavour:
           - flavour_key: m1.small
         endpoint: generic
