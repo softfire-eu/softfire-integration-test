@@ -227,7 +227,7 @@ def cleanup(user_created, experiment_deployed, admin_session=None, user_session=
                 delete_user(experimenter_name, admin_session)
                 log.info('Successfully removed experimenter named \'{}\'.'.format(experimenter_name))
             except Exception as e:
-                failures_during_cleanup.append('Could not remove experimenter named {}.'.format(experimenter_pwd))
-                log.error('Could not remove experimenter named {}.'.format(experimenter_pwd))
+                failures_during_cleanup.append('Could not remove experimenter named {}: {}'.format(experimenter_name, e))
+                log.error('Could not remove experimenter named {}: {}'.format(experimenter_name, e))
                 traceback.print_exc()
     return failures_during_cleanup
