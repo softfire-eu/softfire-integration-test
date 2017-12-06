@@ -182,6 +182,7 @@ def start_connectivity_test():
 
     if delete_experimenter in ['True', 'true']:
         try:
+            admin_session = log_in(exp_mngr_admin_name, exp_mngr_admin_pwd)
             delete_user(experimenter_name, admin_session)
             log.info('Successfully removed experimenter named \'{}\'.'.format(experimenter_name))
         except Exception as e:
@@ -224,6 +225,7 @@ def cleanup(user_created, experiment_deployed, admin_session=None, user_session=
     if user_created:
         if delete_experimenter in ['True', 'true']:
             try:
+                admin_session = log_in(exp_mngr_admin_name, exp_mngr_admin_pwd)
                 delete_user(experimenter_name, admin_session)
                 log.info('Successfully removed experimenter named \'{}\'.'.format(experimenter_name))
             except Exception as e:
