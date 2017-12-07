@@ -131,15 +131,19 @@ def start_ue_resv_engine_test():
         experimenter_name = experimenter[0]
         experimenter_pwd = experimenter[1]
         delete_experimenter = experimenter[3]
+        try_count = 3
         if delete_experimenter in ['True', 'true']:
-            try:
-                delete_user(experimenter_name, admin_session)
-                log.info('Successfully removed experimenter named \'{}\'.'.format(experimenter_name))
-                add_result(test_results, 'Delete User', 'OK', '')
-            except Exception as e:
-                log.error('Could not remove experimenter named {}.'.format(experimenter_pwd))
-                traceback.print_exc()
-                add_result(test_results, 'Delete User', 'FAILED', '{}: {}'.format(experimenter_name, str(e)))
+            while try_count > 0:
+                try:
+                    delete_user(experimenter_name, admin_session)
+                    log.info('Successfully removed experimenter named \'{}\'.'.format(experimenter_name))
+                    add_result(test_results, 'Delete User', 'OK', '')
+                    try_count = 0
+                except Exception as e:
+                    log.error('Could not remove experimenter named {}.'.format(experimenter_pwd))
+                    traceback.print_exc()
+                    add_result(test_results, 'Delete User', 'FAILED', '{}: {}'.format(experimenter_name, str(e)))
+                    try_count -= 1
 
 
     time.sleep(1)  # otherwise the results were printed in the middle of the stack traces
