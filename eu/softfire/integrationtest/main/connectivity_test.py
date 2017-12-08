@@ -47,7 +47,7 @@ def start_connectivity_test():
             create_user(experimenter_name, experimenter_pwd, 'experimenter', admin_session)
             log.info('Triggered the creation of a new experimenter named \'{}\'.'.format(experimenter_name))
         except Exception as e:
-            log.error('Could not trigger the creation of a new experimenter named {}.'.format(experimenter_pwd))
+            log.error('Could not trigger the creation of a new experimenter named {}.'.format(experimenter_name))
             traceback.print_exc()
             print('----------- FAILURE -----------')
             print('Could not trigger the creation of a new experimenter called {}.'.format(experimenter_name))
@@ -186,7 +186,7 @@ def start_connectivity_test():
             delete_user(experimenter_name, admin_session)
             log.info('Successfully removed experimenter named \'{}\'.'.format(experimenter_name))
         except Exception as e:
-            log.error('Could not remove experimenter named {}.'.format(experimenter_pwd))
+            log.error('Could not remove experimenter named {}.'.format(experimenter_name))
             traceback.print_exc()
 
     time.sleep(1)  # otherwise the results were printed in the middle of the stack traces
