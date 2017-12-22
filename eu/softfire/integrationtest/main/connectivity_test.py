@@ -123,10 +123,10 @@ def start_connectivity_test():
                         print(problem)
                 sys.exit(2)
             vnfr_list = nsr.get('vnfr')
+            status_of_vnfrs = [] # contains the status of all vnfrs
             if len(vnfr_list) == 0:
                 continue
             pending_vnfr = []
-            status_of_vnfrs = [] # contains the status of all vnfrs
             for vnfr in vnfr_list:
                 vnfr_name = vnfr.get('name')
                 vnfr_status = vnfr.get('status')
@@ -141,12 +141,16 @@ def start_connectivity_test():
                 log.debug('All the VNFRs are in ACTIVE or ERROR state.')
                 break
         else:
-            log.error('Timeout: After {} minutes there are VNFRs not yet in ACTIVE or ERROR state: {}'.format(
-                wait_nfv_resource_minuties, ', '.join(status_of_vnfrs)))
+            if len(vnfr_list) == 0:
+                error_message = 'Timeout: After {} minutes there were no VNFRs found in the NSR'.format(
+                    wait_nfv_resource_minuties)
+            else:
+                error_message = 'Timeout: After {} minutes there are VNFRs not yet in ACTIVE or ERROR state: {}'.format(
+                wait_nfv_resource_minuties, ', '.join(status_of_vnfrs))
+            log.error(error_message)
             failures_during_cleanup = cleanup(True, True, admin_session, user_session)
             print('----------- FAILURE -----------')
-            print('Timeout: After {} minutes there are VNFRs not yet in ACTIVE or ERROR state: {}'.format(
-                wait_nfv_resource_minuties, ', '.join(status_of_vnfrs)))
+            print(error_message)
             if len(failures_during_cleanup) > 0:
                 print('Additionally, the following problems occurred during cleanup:')
                 for problem in failures_during_cleanup:
