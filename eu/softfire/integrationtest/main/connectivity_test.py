@@ -106,7 +106,9 @@ def start_connectivity_test():
     for resource in deployed_experiment:
         used_resource_id = resource.get('used_resource_id')
         # wait at most about 7 minutes for the NSR to reach active or error state
-        for i in range(wait_nfv_resource_minuties * 20):
+        i = 0
+        while i < (wait_nfv_resource_minuties * 20):
+            i += 1
             time.sleep(3)
             resource = get_resource_from_id(used_resource_id, user_session)
             try:
@@ -135,6 +137,9 @@ def start_connectivity_test():
                 if vnfr_status == 'ACTIVE':
                     continue
                 if vnfr_status == 'ERROR':
+                    # jump to the end of the loop but let it iterate for another three times to give it a chance to find other VNFRs in error state
+                    if i < (wait_nfv_resource_minuties * 20) - 3:
+                        i = (wait_nfv_resource_minuties * 20) - 3
                     continue
                 pending_vnfr.append(vnfr_name)
             if len(pending_vnfr) == 0:
