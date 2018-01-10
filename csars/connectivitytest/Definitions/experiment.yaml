@@ -13,7 +13,7 @@ topology_template:
           VDU1: ads
           VDU2: surrey
           VDU3: fokus
-          VDU4: fokus-dev
+#          VDU4: fokus-dev
           VDU5: ericsson
         ssh_pub_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGogqvVpYyzTc/s2JzgsPRYF6gVcfiyRiANAG1IIX0Lf83CLAQ0VepSulGEckGJXzFvPs2Qy1KI9E45F/XHdCrjGH11QdjIl+CL17qAp/JUU39GAjmTXzuRcQZBBbGOiR+XJZRKcIOMmCAWeW8YcRg4XczZdsV4xEBgwPXznm9seFTC0wQQyBYyunfsgXks80IFzyovFRrneLxx/djjFKg7PgSnuW3PusGCQnVil5AZHZt9EQvRMgxDnitDk1WV5Ne6zvYuc9DuuI9NAjqbv4YmMMnrvngx4BhB2whjz3dcVzHsrubo0xpXLKkC/o46QRKJT6AjKsw+qvBQYgaOLGl ubuntu@sf-ob-box"
         file_name: "Files/nsd.csar"
