@@ -19,7 +19,7 @@ Preparation
 ===========
 Copy the *integration-test.ini* file, which you can find in the project's etc folder, to */etc/softfire/integration-test.ini*.
 Edit it so that it fits for your testing environment.
-The experimenter's *experiment* section expects the path to the experiment file which shall be used for this experimenter in the tests.
+The experimenter's *experiment* section expects the path to the experiment file which shall be used for this experimenter in the tests and the name of the experiment as it is defined in the csar file.
 
 
 Test phases

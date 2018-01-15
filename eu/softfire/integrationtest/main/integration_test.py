@@ -113,9 +113,11 @@ def start_integration_test():
     for experimenter in experimenters:
         experimenter_name = experimenter[0]
         experimenter_pwd = experimenter[1]
+        experiment_name = experimenter[5]
+        experiment_id = '{}_{}'.format(experimenter_name, experiment_name)
         user_session = log_in(experimenter_name, experimenter_pwd)
         q = queue.Queue()
-        t = threading.Thread(target=deploy_experiment, args=(user_session, q,), name=experimenter_name)
+        t = threading.Thread(target=deploy_experiment, args=(user_session, experiment_id, q,), name=experimenter_name)
         deployment_threads_queues.append((t, q))
     for (t, q) in deployment_threads_queues:
         log.info('Deploy experiment of experimenter {}'.format(t.name))
@@ -135,9 +137,11 @@ def start_integration_test():
     for experimenter in experimenters:
         experimenter_name = experimenter[0]
         experimenter_pwd = experimenter[1]
+        experiment_name = experimenter[5]
+        experiment_id = '{}_{}'.format(experimenter_name, experiment_name)
         failed_resources = []
         user_session = log_in(experimenter_name, experimenter_pwd)
-        deployed_experiment = get_experiment_status(user_session)
+        deployed_experiment = get_experiment_status(user_session, experiment_id=experiment_id)
         for resource in deployed_experiment:
             used_resource_id = resource.get('used_resource_id')
             resource_id = resource.get('resource_id')
@@ -168,15 +172,17 @@ def start_integration_test():
     for experimenter in experimenters:
         experimenter_name = experimenter[0]
         experimenter_pwd = experimenter[1]
+        experiment_name = experimenter[5]
+        experiment_id = '{}_{}'.format(experimenter_name, experiment_name)
         user_session = log_in(experimenter_name, experimenter_pwd)
         try:
             log.info('\n\n\n')
-            log.info("Removing Experiment of {}".format(experimenter_name))
-            delete_experiment(user_session)
-            log.info('Removed experiment of {}.\n\n\n'.format(experimenter_name))
+            log.info("Removing experiment {} of {}".format(experiment_id, experimenter_name))
+            delete_experiment(user_session, experiment_id)
+            log.info('Removed experiment {} of {}.\n\n\n'.format(experiment_id, experimenter_name))
             add_result(test_results, 'Delete Experiment', 'OK', '')
         except Exception as e:
-            log.error('Failure during removal of experiment of {}.'.format(experimenter_name))
+            log.error('Failure during removal of experiment {} of {}.'.format(experiment_id, experimenter_name))
             traceback.print_exc()
             add_result(test_results, 'Delete Experiment', 'FAILED', '{}: {}'.format(experimenter_name, str(e)))
 
@@ -248,7 +254,8 @@ def __get_experimenters():
     create_experimenter = get_config_value('experimenter', 'create-user', 'True')
     delete_experimenter = get_config_value('experimenter', 'delete-user', 'True')
     experiment_file = get_config_value('experimenter', 'experiment')
-    experimenters = [(experimenter_name, experimenter_password, create_experimenter, delete_experimenter, experiment_file)]
+    experiment_name = get_config_value('experimenter', 'experiment_name')
+    experimenters = [(experimenter_name, experimenter_password, create_experimenter, delete_experimenter, experiment_file, experiment_name)]
     for i in range(0, 100):
         try:
             experimenter_name = get_config_value('experimenter-{}'.format(i), 'username')
@@ -256,7 +263,8 @@ def __get_experimenters():
             create_experimenter = get_config_value('experimenter-{}'.format(i), 'create-user', 'True')
             delete_experimenter = get_config_value('experimenter-{}'.format(i), 'delete-user', 'True')
             experiment_file = get_config_value('experimenter-{}'.format(i), 'experiment')
-            experimenters.append((experimenter_name, experimenter_password, create_experimenter, delete_experimenter, experiment_file))
+            experiment_name = get_config_value('experimenter-{}', 'experiment-name')
+            experimenters.append((experimenter_name, experimenter_password, create_experimenter, delete_experimenter, experiment_file, experiment_name))
         except (configparser.NoSectionError, configparser.NoOptionError):
             break
     return experimenters
