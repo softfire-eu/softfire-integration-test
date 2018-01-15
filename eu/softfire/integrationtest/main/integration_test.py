@@ -254,7 +254,7 @@ def __get_experimenters():
     create_experimenter = get_config_value('experimenter', 'create-user', 'True')
     delete_experimenter = get_config_value('experimenter', 'delete-user', 'True')
     experiment_file = get_config_value('experimenter', 'experiment')
-    experiment_name = get_config_value('experimenter', 'experiment_name')
+    experiment_name = get_config_value('experimenter', 'experiment-name')
     experimenters = [(experimenter_name, experimenter_password, create_experimenter, delete_experimenter, experiment_file, experiment_name)]
     for i in range(0, 100):
         try:
