@@ -3,7 +3,7 @@ import logging
 import logging.config
 import os
 
-CONFIGURATION_FILE_PATH = "/etc/softfire/integration-test.ini"
+CONFIGURATION_FILE_PATH = "/etc/softfire/integration-test-prod.ini"
 
 
 def get_logger(name):
