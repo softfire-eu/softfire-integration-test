@@ -2,7 +2,7 @@ import json
 import logging
 import time
 import traceback
-from json import JSONDecodeError
+from simplejson import JSONDecodeError
 
 import requests
 
