@@ -99,12 +99,12 @@ def upload_experiment(experiment_file_path, session):
     log.debug('Upload of experiment succeeded.')
 
 
-def deploy_experiment(session, queue=None):
+def deploy_experiment(session, experiment_id, queue=None):
     try:
-        log.debug('Try to deploy experiment.')
-        response = session.post(experiment_manager_deploy_experiment_url)
+        log.debug('Try to deploy experiment with ID {}.'.format(experiment_id))
+        response = session.post(experiment_manager_deploy_experiment_url, data={'experiment_id': experiment_id})
         __validate_response_status(response, 200)
-        log.debug('Deployment of experiment succeeded.')
+        log.debug('Deployment of experiment {} succeeded.'.format(experiment_id))
         if queue is not None:
             queue.put(None)
     except Exception as e:
@@ -116,19 +116,26 @@ def deploy_experiment(session, queue=None):
 
 
 
-def delete_experiment(session):
-    log.debug('Try to remove experiment.')
-    response = session.post(experiment_manager_delete_experiment_url)
+def delete_experiment(session, experiment_id):
+    log.debug('Try to remove experiment with ID {}.'.format(experiment_id))
+    response = session.post(experiment_manager_delete_experiment_url, data={'experiment_id': experiment_id})
     __validate_response_status(response, 200)
-    log.debug('Removal of experiment succeeded.')
+    log.debug('Removal of experiment {} succeeded.'.format(experiment_id))
 
 
-def get_experiment_status(session):
-    log.debug('Try to get the experiement\'s status.')
+def get_experiment_status(session, experiment_id=None):
+    log.debug('Try to get status of experiment{}.'.format(' with ID {}'.format(experiment_id) if experiment_id is not None else 's'))
     response = session.get(experiment_manager_get_status_url)
     __validate_response_status(response, 200)
+    resources = json.loads(response.text)
+    if experiment_id is not None:
+        filtered_resources = []
+        for resource in resources:
+            if resource.get('experiment_id') == experiment_id:
+                filtered_resources.append(resource)
+        resources = filtered_resources
     # log.debug('Successfully fetched experiment status: {}'.format(response.text))
-    return json.loads(response.text)
+    return resources
 
 
 def get_resource_from_id(used_resource_id, session):

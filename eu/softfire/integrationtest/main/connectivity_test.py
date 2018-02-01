@@ -20,6 +20,8 @@ create_experimenter = get_config_value('connectivity-test', 'create-user', 'True
 delete_experimenter = get_config_value('connectivity-test', 'delete-user', 'True')
 experiment_file_path = get_config_value('connectivity-test', 'experiment')
 wait_nfv_resource_minuties = int(get_config_value('nfv-resource', 'wait-nfv-res-min', '10'))
+experiment_name = get_config_value('connectivity-test', 'experiment-name')
+experiment_id = '{}_{}'.format(experimenter_name, experiment_name)
 
 
 def add_result(result_dict, phase, status, details):
@@ -89,7 +91,7 @@ def start_connectivity_test():
         sys.exit(2)
 
     try:
-        deploy_experiment(user_session)
+        deploy_experiment(user_session, experiment_id=experiment_id)
     except Exception as e:
         traceback.print_exc()
         log.error('The experiment\'s deployment failed for experimenter {}: {}'.format(experimenter_name, str(e)))
@@ -102,7 +104,7 @@ def start_connectivity_test():
                 print(problem)
         sys.exit(2)
 
-    deployed_experiment = get_experiment_status(user_session)
+    deployed_experiment = get_experiment_status(user_session, experiment_id=experiment_id)
     for resource in deployed_experiment:
         used_resource_id = resource.get('used_resource_id')
         # wait at most about 7 minutes for the NSR to reach active or error state
@@ -182,7 +184,7 @@ def start_connectivity_test():
 
     try:
         log.info("Removing experiment of {}".format(experimenter_name))
-        delete_experiment(user_session)
+        delete_experiment(user_session, experiment_id)
         log.info('Removed experiment of {}.\n\n\n'.format(experimenter_name))
     except Exception as e:
         log.error('Failure during removal of experiment of {}.'.format(experimenter_name))
@@ -225,7 +227,7 @@ def cleanup(user_created, experiment_deployed, admin_session=None, user_session=
     if experiment_deployed:
         try:
             log.info("Removing experiment of {}".format(experimenter_name))
-            delete_experiment(user_session)
+            delete_experiment(user_session, experiment_id)
             log.info('Removed experiment of {}.\n\n\n'.format(experimenter_name))
         except Exception as e:
             failures_during_cleanup.append('Failure during removal of experiment of {}.'.format(experimenter_name))
