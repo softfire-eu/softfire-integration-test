@@ -31,7 +31,8 @@ setup(
     scripts=["softfire-integration-test", "softfire-testbed-connectivity-test"],
     install_requires=[
         'requests',
-        'PyYAML'
+        'PyYAML',
+        'simplejson'
     ],
     long_description=read('README.rst'),
     classifiers=[
