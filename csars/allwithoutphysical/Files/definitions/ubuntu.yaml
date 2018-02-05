@@ -3,7 +3,7 @@ description: "NS for deploying a clean ubuntu machine"
 metadata: 
   ID: Ubuntu Example with fips
   vendor: TUB
-  version: "5.0.0"
+  version: "5.1.0"
 relationships_template: 
   rel1: 
     parameters: 

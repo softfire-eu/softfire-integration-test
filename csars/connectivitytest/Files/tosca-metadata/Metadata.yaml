@@ -3,7 +3,7 @@ description: Ubuntu Example.
 provider: TUB
 # this is ignored
 shared: true
-nfvo_version: 5.0.0
+nfvo_version: 5.1.0
 image:
     upload: false
     names:
