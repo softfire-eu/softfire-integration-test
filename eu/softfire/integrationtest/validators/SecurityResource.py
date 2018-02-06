@@ -22,13 +22,13 @@ class SecurityResourceValidator(AbstractValidator):
             for k, v in res.items():
                 if "ERROR" in str(v).upper():
                     raise SecurityResourceValidationException(v)
+                elif (k == "status" and str(v) == "NULL") or (k == "NSR Details"):
+                    res = json.loads(get_resource_from_id(resource_id, session))
+                    time.sleep(3)
                 elif "link" in k:
                     resp = requests.get(v)
                     if resp.status_code != 200:
                         raise SecurityResourceValidationException(v)
-                elif (k == "status" and str(v) == "NULL") or (k == "NSR Details"):
-                    res = json.loads(get_resource_from_id(resource_id, session))
-                    time.sleep(3)
                 else:
                     return
         return
