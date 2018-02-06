@@ -22,10 +22,13 @@ class SecurityResourceValidator(AbstractValidator):
             for k, v in res.items():
                 if "ERROR" in str(v).upper():
                     raise SecurityResourceValidationException(v)
-                elif "link" in k:
-                    resp = requests.get(v)
-                    if resp.status_code != 200:
-                        raise SecurityResourceValidationException(v)
+            if res.get('status') == 'ACTIVE':
+                api_url = res.get('api_url')
+                resp = requests.get(api_url)
+                if resp.status_code != 200:
+                    raise SecurityResourceValidationException(resp.text)
+                else:
+                    return
             time.sleep(3)
         else:
             raise SecurityResourceValidationException('Security resource did not reach active state.')
