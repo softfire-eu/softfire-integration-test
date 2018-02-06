@@ -17,18 +17,15 @@ wait_nfv_resource_minutes = int(get_config_value('nfv-resource', 'wait-nfv-res-m
 class SecurityResourceValidator(AbstractValidator):
     def validate(self, resource, resource_id, session):
         log.debug('Validate SecurityResource with resource_id: {}'.format(resource_id))
-        res = json.loads(resource)
         for i in range(wait_nfv_resource_minutes * 20):
+            res = json.loads(get_resource_from_id(resource_id, session))
             for k, v in res.items():
                 if "ERROR" in str(v).upper():
                     raise SecurityResourceValidationException(v)
-                elif (k == "status" and str(v) == "NULL") or (k == "NSR Details"):
-                    res = json.loads(get_resource_from_id(resource_id, session))
-                    time.sleep(3)
                 elif "link" in k:
                     resp = requests.get(v)
                     if resp.status_code != 200:
                         raise SecurityResourceValidationException(v)
-                else:
-                    return
-        return
+            time.sleep(3)
+        else:
+            raise SecurityResourceValidationException('Security resource did not reach active state.')
