@@ -1,0 +1,106 @@
+--- 
+description: "NS for deploying a clean ubuntu machine"
+metadata: 
+  ID: Ubuntu Example with fips
+  vendor: TUB
+  version: "5.1.0"
+relationships_template: 
+  rel1: 
+    parameters: 
+      - key_1
+      - key_2
+      - softfire-internal
+      - softfire-internal_floatingIp
+    source: ubuntuclient
+    target: ubuntuserver
+    type: tosca.nodes.relationships.ConnectsTo
+  rel2: 
+    parameters: 
+      - key_1
+      - key_2
+      - softfire-internal
+      - softfire-internal_floatingIp
+    source: ubuntuserver
+    target: ubuntuclient
+    type: tosca.nodes.relationships.ConnectsTo
+topology_template: 
+  node_templates: 
+    CP1: 
+      properties: 
+        floatingIP: random
+      requirements: 
+        - virtualBinding: VDU1
+        - virtualLink: softfire-internal
+      type: tosca.nodes.nfv.CP
+    CP2: 
+      properties: 
+        floatingIP: random
+      requirements: 
+        - virtualBinding: VDU2
+        - virtualLink: softfire-internal
+      type: tosca.nodes.nfv.CP
+    VDU1: 
+      properties: 
+        scale_in_out: 2
+      requirements: 
+        - virtual_link: CP1
+      type: tosca.nodes.nfv.VDU
+    VDU2: 
+      properties: 
+        scale_in_out: 2
+      requirements: 
+        - virtual_link: CP2
+      type: tosca.nodes.nfv.VDU
+    ubuntuclient: 
+      interfaces: 
+        lifecycle: 
+          CONFIGURE: 
+            - ubuntuserver_relation.sh
+          INSTANTIATE: 
+            - install.sh
+          START: 
+            - start.sh
+      properties: 
+        configurations: 
+          configurationParameters: 
+            - key_1: value_1
+            - key_2: value_2
+            - key_3: value_3
+          name: ubuntuclient-configuration
+        deploymentFlavour: 
+          - flavour_key: m1.small
+        endpoint: generic
+        type: ubuntuclient
+        vendor: TUB
+        version: 16.04
+      requirements: 
+        - virtualLink: softfire-internal
+        - vdu: VDU1
+      type: openbaton.type.VNF
+    ubuntuserver: 
+      interfaces: 
+        lifecycle: 
+          CONFIGURE: 
+            - ubuntuclient_relation.sh
+          INSTANTIATE: 
+            - install.sh
+          START: 
+            - start.sh
+      properties: 
+        configurations: 
+          configurationParameters: 
+            - key_1: value_1
+            - key_2: value_2
+            - key_3: value_3
+          name: ubuntuserver-configuration
+        deploymentFlavour: 
+          - flavour_key: m1.small
+        endpoint: generic
+        type: ubuntuserver
+        vendor: TUB
+        version: 16.04
+      requirements: 
+        - virtualLink: softfire-internal
+        - vdu: VDU2
+      type: openbaton.type.VNF
+tosca_definitions_version: tosca_clean_ubuntu
