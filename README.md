@@ -21,10 +21,10 @@ Installation
 ------------
 
 Git clone the repository and change into the project's directory.
-Execute pip install . for installing the integration test. Afterwards
-you can start it with the command softfire-integration-test. (The
+Execute `pip install .` for installing the integration test. Afterwards
+you can start it with the command `softfire-integration-test`. (The
 connectivity test can be started with the command
-softfire-testbed-connectivity-test but it is not described in more
+`softfire-testbed-connectivity-test` but it is not described in more
 detail here. The following information are only related to the former
 test.)
 
