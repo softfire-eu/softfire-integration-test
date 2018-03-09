@@ -1,0 +1,14 @@
+description: "Monitoring KPI custom nfv"
+imports:
+    - softfire_node_types: "http://docs.softfire.eu/etc/softfire_node_types.yaml"
+topology_template:
+    node_templates:
+        custom_nsd:
+            type: NfvResource
+            properties:
+                resource_id: custom_NFV_resource
+                testbeds:
+                    ANY: surrey
+                nsd_name: "custom_nsd"
+                file_name: Files/custom_nsd.csar
+tosca_definitions_version: tosca_simple_yaml_1_0

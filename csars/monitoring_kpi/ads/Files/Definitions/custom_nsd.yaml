@@ -1,0 +1,44 @@
+tosca_definitions_version: tosca_simple_profile_for_nfv_1_0
+description: Monitoring KPI vnf
+metadata:
+    ID: monitoring KPI vnf
+    vendor: SoftFIRE
+    version: 1.0
+topology_template:
+    node_templates:
+        vm:
+            type: openbaton.type.VNF
+            properties:
+                ID: vm
+                vendor: SoftFIRE
+                version: 1.0
+                endpoint: generic
+                type: vm
+                deploymentFlavour:
+                  - flavour_key: m1.small
+            requirements:
+                - virtualLink: testing_lan
+                - vdu: VDU1
+            interfaces:
+                lifecycle:
+                    INSTANTIATE:
+                        - install.sh
+        VDU1:
+            type: tosca.nodes.nfv.VDU
+            properties:
+                scale_in_out: 1
+            requirements:
+                - virtual_link: CP1
+            artifacts:
+                VDU1Image:
+                    type: tosca.artifacts.Deployment.Image.VM
+                    file: Ubuntu-16.04
+        CP1:
+            type: tosca.nodes.nfv.CP
+            requirements:
+                - virtualBinding: VDU1
+                - virtualLink: testing_lan
+        testing_lan:
+            type: tosca.nodes.nfv.VL
+            properties:
+                vendor: SoftFire
