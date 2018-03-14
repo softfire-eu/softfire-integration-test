@@ -1,0 +1,15 @@
+--- 
+description: "Template for SoftFIRE yaml resource request definition"
+imports: 
+  - 
+    softfire_node_types: "http://docs.softfire.eu/etc/softfire_node_types.yaml"
+topology_template: 
+  node_templates: 
+
+    myphysiscal:
+      properties:
+        resource_id: fokus-cell
+        resource_name: fokus-cell
+      type: PhysicalResource
+
+tosca_definitions_version: tosca_simple_yaml_1_0

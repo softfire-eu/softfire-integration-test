@@ -1,0 +1,21 @@
+--- 
+description: "Template for SoftFIRE yaml resource request definition"
+imports: 
+  - 
+    softfire_node_types: "http://docs.softfire.eu/etc/softfire_node_types.yaml"
+topology_template: 
+  node_templates: 
+
+
+    firewall_1:
+      type: SecurityResource
+      properties:
+        resource_id: firewall
+        want_agent: false
+        testbed: fokus
+        default_rule: allow
+        denied_ips: [172.20.10.138]
+        logging: true
+
+
+tosca_definitions_version: tosca_simple_yaml_1_0

@@ -35,6 +35,13 @@ class NfvResourceValidator(AbstractValidator):
             if nsr_status == 'ERROR':
                 error_message = 'NSR for resource {} is in ERROR state.'.format(resource_id)
                 log.error(error_message)
+                vnfr_list = nsr.get('vnfr') or []
+                for vnfr in vnfr_list:
+                    if vnfr.get('status') == 'ERROR':
+                        vnfr_name = vnfr.get('name') or 'COULD NOT GET VNFR NAME'
+                        failed_lifecycle_events = vnfr.get('failed lifecycle events') or []
+                        if len(failed_lifecycle_events) > 0:
+                            log.error(' VNFR {}: {}  '.format(vnfr_name, ' AND '.join(failed_lifecycle_events)))
                 raise NfvValidationException(error_message)
 
         if not nsr:
