@@ -26,7 +26,6 @@ EXPERIMENTS = ['fokus', 'ads', 'ericsson', 'surrey']
 log = get_logger(__name__)
 logging.getLogger().setLevel("ERROR")
 logging.getLogger(__name__).setLevel("DEBUG")
-#logging.getLogger('eu.softfire.integrationtest.main.experiment_manager_client').setLevel("DEBUG")
 
 
 def add_result(result_dict, phase, status, details):
@@ -89,7 +88,6 @@ def start_monitoring_kpi_test():
         deployed_experiment = get_experiment_status(user_session, experiment_id=experiment_id)
         print(deployed_experiment)
         for resource in deployed_experiment:
-            continue
             used_resource_id = resource.get('used_resource_id')
             resource_id = resource.get('resource_id')
             node_type = resource.get('node_type')
@@ -100,7 +98,6 @@ def start_monitoring_kpi_test():
                 ts_dict[exp]["VALIDATE_START"] = datetime.now()
                 validator.validate(get_resource_from_id(used_resource_id, session=user_session), used_resource_id, user_session)
                 ts_dict[exp]["VALIDATE_END"] = datetime.now()
-                log.info('\n\n\n')
                 log.info('Validation of resource {}: {}-{} succeeded.'.format(USERNAME, resource_id, used_resource_id))
                 time.sleep(5)
                 validated_resources.append(['   - {}: {}-{}'.format(experimenter_name, resource_id, used_resource_id), 'OK', ''])
@@ -119,8 +116,6 @@ def start_monitoring_kpi_test():
         except Exception as e:
             log.error('Failure during removal of experiment {} of {}.'.format(experiment_id, USERNAME))
             traceback.print_exc()
-
-        break
 
     try:
         with open("./result_KPI.json", 'r') as f:
