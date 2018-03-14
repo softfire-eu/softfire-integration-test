@@ -1,18 +1,19 @@
 #import configparser
+import json
+import logging
 import os.path
 #import queue
-#import sys
+import sys
 #import threading
-#import time
+import time
 import traceback
-#import zipfile
-#
-#import yaml
+import zipfile
+import yaml
 from collections import OrderedDict
 from eu.softfire.integrationtest.main.experiment_manager_client import create_user, upload_experiment, \
     delete_experiment, deploy_experiment, get_resource_from_id, get_experiment_status, delete_user, \
     log_in
-#from eu.softfire.integrationtest.utils.exceptions import IntegrationTestException
+from eu.softfire.integrationtest.utils.exceptions import IntegrationTestException
 from eu.softfire.integrationtest.utils.utils import get_config_value
 from eu.softfire.integrationtest.utils.utils import get_logger, print_results
 from eu.softfire.integrationtest.validators.validators import get_validator
@@ -21,8 +22,11 @@ from datetime import datetime
 USERNAME = 'test_kpi'
 PASSWORD = 'test_kpi'
 EXPERIMENT_BASE_DIR = 'csars/monitoring_kpi'
-EXPERIMENTS = ['ads', 'ericsson', 'fokus', 'surrey']
+EXPERIMENTS = ['fokus', 'ads', 'ericsson', 'surrey']
 log = get_logger(__name__)
+logging.getLogger().setLevel("ERROR")
+logging.getLogger(__name__).setLevel("DEBUG")
+#logging.getLogger('eu.softfire.integrationtest.main.experiment_manager_client').setLevel("DEBUG")
 
 
 def add_result(result_dict, phase, status, details):
@@ -38,125 +42,100 @@ def add_result(result_dict, phase, status, details):
 def start_monitoring_kpi_test():
 
     log.info("Starting the SoftFIRE integration tests.")
-    test_results = OrderedDict()
 
-    # get config values
     exp_mngr_admin_name = get_config_value('experiment-manager', 'admin-username', 'admin')
     exp_mngr_admin_pwd = get_config_value('experiment-manager', 'admin-password', 'admin')
     admin_session = log_in(exp_mngr_admin_name, exp_mngr_admin_pwd)
-    #exp = __get_experimenter()
-
-    try:
-        create_user(USERNAME, PASSWORD, 'experimenter', admin_session)
-        log.info('Triggered the creation of a new experimenter named \'{}\'.'.format(USERNAME))
-    except Exception as e:
-        log.error('Could not trigger the creation of a new experimenter named {}.'.format(USERNAME))
-        traceback.print_exc()
-        add_result(test_results, 'Create User', 'FAILED', '{}: {}'.format(USERNAME, str(e)))
 
     user_session = log_in(USERNAME, PASSWORD)
     ts_dict = {}
 
-    # validate experiment files (preparation phase)
-    for e in EXPERIMENTS:
-        ts_dict[e] = {}
-        ts_dict[e]["START"] = datetime.now()
+    for exp in EXPERIMENTS:
+        ts_dict[exp] = {}
+        ts_dict[exp]["START"] = datetime.now()
         preparation_failed = False
         try:
-            __validate_experiment_file(os.path.join(EXPERIMENT_BASE_DIR, e+'.csar'))
-            ts_dict[e]["VALIDATION_END"] = datetime.now()
+            log.debug("started validation phase")
+            __validate_experiment_file(os.path.join(EXPERIMENT_BASE_DIR, exp+'.csar'))
+            ts_dict[exp]["VALIDATION_END"] = datetime.now()
         except Exception as e:
             traceback.print_exc()
-            add_result(test_results, 'Preparation', 'FAILED', '{}: {}'.format(USERNAME, str(e)))
             preparation_failed = True
-        log.info('Finished preparation phase.')
+        log.info('Finished validation phase.')
         if preparation_failed:
             log.error('Preparation phase failed.')
             time.sleep(1)
-            print()
-            print_results([[r[0], r[1].get('status'), r[1].get('details')] for r in test_results.items()])
-            __exit_on_failure([[r[0], r[1].get('status'), r[1].get('details')] for r in test_results.items()])
             return
 
         try:
-            ts_dict[e]["UPLOAD_START"] = datetime.now()
-            upload_experiment(os.path.join(EXPERIMENT_BASE_DIR, e+'.csar'), user_session)
-            ts_dict[e]["UPLOAD_END"] = datetime.now()
-            log.info('Experimenter {} uploaded experiment {}.'.format(USERNAME, e))
-            add_result(test_results, 'Upload Experiment', 'OK', '')
+            ts_dict[exp]["UPLOAD_START"] = datetime.now()
+            upload_experiment(os.path.join(EXPERIMENT_BASE_DIR, exp+'.csar'), user_session)
+            ts_dict[exp]["UPLOAD_END"] = datetime.now()
+            log.info('Experimenter {} uploaded experiment {}.'.format(USERNAME, exp))
         except Exception as e:
-            log.error('Experimenter {} could not upload experiment {}.'.format(USERNAME, os.path.join(EXPERIMENT_BASE_DIR, e+'.csar')))
+            log.error('Experimenter {} could not upload experiment {}.'.format(USERNAME, os.path.join(EXPERIMENT_BASE_DIR, exp+'.csar')))
             traceback.print_exc()
-            add_result(test_results, 'Upload Experiment', 'FAILED', '{}: {}'.format(USERNAME, str(e)))
 
-#        deployment_threads_queues = []
         try:
-            experiment_id = '{}_{}'.format(USERNAME, e)
-            ts_dict[e]["DEPLOY_START"] = datetime.now()
+            experiment_id = '{}_monitoring_KPI_{}'.format(USERNAME, exp)
+            log.debug("Starting deploy experiment %s" % experiment_id)
+            ts_dict[exp]["DEPLOY_START"] = datetime.now()
             deploy_experiment(user_session, experiment_id)
-            ts_dict[e]["DEPLOY_END"] = datetime.now()
-            add_result(test_results, 'Deploy Experiment', 'OK', '')
+            ts_dict[exp]["DEPLOY_END"] = datetime.now()
         except Exception as e:
             log.error('The experiment\'s deployment failed for experimenter {}.'.format(USERNAME))
-            add_result(test_results, 'Deploy Experiment', 'FAILED', '{}: {}'.format(USERNAME, str(e)))
 
-
-        # validate deployments
-#        validated_resources = []
-#            failed_resources = []
-            deployed_experiment = get_experiment_status(user_session, experiment_id=experiment_id)
-            for resource in deployed_experiment:
-                used_resource_id = resource.get('used_resource_id')
-                resource_id = resource.get('resource_id')
-                node_type = resource.get('node_type')
-                try:
-                    log.info("Starting to validate resource of node type: %s" % node_type)
-                    validator = get_validator(node_type)
-                    log.debug("Got validator %s" % validator)
-                    ts_dict[e]["VALIDATE_START"] = datetime.now()
-                    validator.validate(get_resource_from_id(used_resource_id, session=user_session), used_resource_id, user_session)
-                    ts_dict[e]["VALIDATE_END"] = datetime.now()
-                    log.info('\n\n\n')
-                    log.info('Validation of resource {}: {}-{} succeeded.\n\n\n'.format(experimenter_name, resource_id, used_resource_id))
-                    time.sleep(5)
-                    validated_resources.append(['   - {}: {}-{}'.format(experimenter_name, resource_id, used_resource_id), 'OK', ''])
-                except Exception as e:
-                    error_message = e.message if isinstance(e, IntegrationTestException) else str(e)
-                    log.error('Validation of resource {}: {}-{} failed: {}'.format(experimenter_name, resource_id, used_resource_id, error_message))
-                    traceback.print_exc()
-                    validated_resources.append(['   - {}: {}-{}'.format(experimenter_name, resource_id, used_resource_id), 'FAILED', '{}: {}'.format(experimenter_name, error_message)])
-                    failed_resources.append(resource_id)
-            log.info('Resource validation phase for {} finished.'.format(experiment_id))
-
+        time.sleep(3)
+        deployed_experiment = get_experiment_status(user_session, experiment_id=experiment_id)
+        print(deployed_experiment)
+        for resource in deployed_experiment:
+            continue
+            used_resource_id = resource.get('used_resource_id')
+            resource_id = resource.get('resource_id')
+            node_type = resource.get('node_type')
             try:
+                log.info("Starting to validate resource of node type: %s" % node_type)
+                validator = get_validator(node_type)
+                log.debug("Got validator %s" % validator)
+                ts_dict[exp]["VALIDATE_START"] = datetime.now()
+                validator.validate(get_resource_from_id(used_resource_id, session=user_session), used_resource_id, user_session)
+                ts_dict[exp]["VALIDATE_END"] = datetime.now()
                 log.info('\n\n\n')
-                log.info("Removing experiment {} of {}".format(experiment_id, USERNAME))
-                ts_dict[e]["DELETE_START"] = datetime.now()
-                delete_experiment(user_session, experiment_id)
-                ts_dict[e]["DELETE_END"] = datetime.now()
-                log.info('Removed experiment {} of {}.\n\n\n'.format(experiment_id, USERNAME))
-                add_result(test_results, 'Delete Experiment', 'OK', '')
+                log.info('Validation of resource {}: {}-{} succeeded.'.format(USERNAME, resource_id, used_resource_id))
+                time.sleep(5)
+                validated_resources.append(['   - {}: {}-{}'.format(experimenter_name, resource_id, used_resource_id), 'OK', ''])
             except Exception as e:
-                log.error('Failure during removal of experiment {} of {}.'.format(experiment_id, USERNAME))
+                error_message = e.message if isinstance(e, IntegrationTestException) else str(e)
+                log.error('Validation of resource {}: {}-{} failed: {}'.format(USERNAME, resource_id, used_resource_id, error_message))
                 traceback.print_exc()
-                add_result(test_results, 'Delete Experiment', 'FAILED', '{}: {}'.format(USERNAME, str(e)))
+        log.info('Resource validation phase for {} finished.'.format(experiment_id))
+
+        try:
+            log.info("Removing experiment {} of {}".format(experiment_id, USERNAME))
+            ts_dict[exp]["DELETE_START"] = datetime.now()
+            delete_experiment(user_session, experiment_id)
+            ts_dict[exp]["DELETE_END"] = datetime.now()
+            log.info('Removed experiment {} of {}.'.format(experiment_id, USERNAME))
+        except Exception as e:
+            log.error('Failure during removal of experiment {} of {}.'.format(experiment_id, USERNAME))
+            traceback.print_exc()
+
+        break
 
     try:
-        delete_user(USERNAME, admin_session)
-        log.info('Successfully removed experimenter named \'{}\'.'.format(USERNAME))
-        add_result(test_results, 'Delete User', 'OK', '')
-    except Exception as e:
-        log.error('Could not remove experimenter named {}.'.format(PASSWORD))
-        traceback.print_exc()
-        add_result(test_results, 'Delete User', 'FAILED', '{}: {}'.format(experimenter_name, str(e)))
+        with open("./result_KPI.json", 'r') as f:
+            old_tests = json.loads(f.read())
+    except Exception:
+        old_tests = {}
 
+    try:
+        old_tests["res_l"].append(ts_dict)
+    except Exception:
+        old_tests["res_l"] = []
+        old_tests["res_l"].append(ts_dict)
 
-    print(ts_dict)
-
-    time.sleep(1)  # otherwise the results were printed in the middle of the stack traces
-    print()
-    print_results([[r[0], r[1].get('status'), r[1].get('details')] for r in test_results.items()])
-    __exit_on_failure([[r[0], r[1].get('status'), r[1].get('details')] for r in test_results.items()])
+    with open("./result_KPI.json", "w") as f:
+        f.write(json.dumps(old_tests, default=lambda obj: isinstance(obj, datetime) and obj.__str__()) or obj)
 
 
 def __validate_experiment_file(experiment_file_path):
@@ -187,17 +166,18 @@ def __validate_experiment_file(experiment_file_path):
                 experiment_resources[resource_id] = resource_type
 
 
-def __exit_on_failure(test_results):
-    for result in [r[1] for r in test_results]:
-        if result != 'OK':
-            sys.exit(1)
+def add_experimenter(username, password, admin_session):
+    try:
+        create_user(username, password, 'experimenter', admin_session)
+        log.info('Triggered the creation of a new experimenter named \'{}\'.'.format(username))
+    except Exception as e:
+        log.error('Could not trigger the creation of a new experimenter named {}.'.format(username))
+        traceback.print_exc()
 
-
-def __get_experimenters():
-    experimenter_name = get_config_value('experimenter', 'username')
-    experimenter_password = get_config_value('experimenter', 'password')
-    experiment_file = get_config_value('experimenter', 'experiment')
-    experiment_name = get_config_value('experimenter', 'experiment-name')
-    exp = {'experimenter_name': experimenter_name, 'experimenter_password': experimenter_password, 'experiment_file': experiment_file, 'experiment_name': experiment_name}
-
-    return exp
+def delete_experimenter(username, admin_session):
+    try:
+        delete_user(username, admin_session)
+        log.info('Successfully removed experimenter named \'{}\'.'.format(username))
+    except Exception as e:
+        log.error('Could not remove experimenter named {}.'.format(PASSWORD))
+        traceback.print_exc()

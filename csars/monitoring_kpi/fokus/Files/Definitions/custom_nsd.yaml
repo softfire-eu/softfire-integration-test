@@ -35,6 +35,8 @@ topology_template:
                     file: Ubuntu-16.04
         CP1:
             type: tosca.nodes.nfv.CP
+            properties:
+                floatingIP: random
             requirements:
                 - virtualBinding: VDU1
                 - virtualLink: testing_lan

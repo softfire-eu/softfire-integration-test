@@ -34,6 +34,8 @@ topology_template:
                     type: tosca.artifacts.Deployment.Image.VM
                     file: Ubuntu-16.04
         CP1:
+            properties:
+                floatingIP: random
             type: tosca.nodes.nfv.CP
             requirements:
                 - virtualBinding: VDU1
