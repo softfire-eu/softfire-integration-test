@@ -28,7 +28,7 @@ setup(
     keywords="python experiment manager softfire integration test",
     url="http://softfire.eu/",
     packages=packages,
-    scripts=["softfire-integration-test", "softfire-testbed-connectivity-test", "monitoring_kpi_test"],
+    scripts=["softfire-integration-test", "softfire-testbed-connectivity-test", "softfire-monitoring-kpi-test"],
     install_requires=[
         'requests',
         'PyYAML'
