@@ -21,7 +21,7 @@ from datetime import datetime
 
 USERNAME = 'test_kpi'
 PASSWORD = 'test_kpi'
-EXPERIMENT_BASE_DIR = 'csars/monitoring_kpi'
+EXPERIMENT_BASE_DIR = '/etc/softfire'
 EXPERIMENTS = ['fokus', 'ads', 'ericsson', 'surrey']
 log = get_logger(__name__)
 logging.getLogger().setLevel("ERROR")
@@ -68,7 +68,7 @@ def start_monitoring_kpi_test():
 
         try:
             ts_dict[exp]["UPLOAD_START"] = datetime.now()
-            upload_experiment(os.path.join(EXPERIMENT_BASE_DIR, exp+'.csar'), user_session)
+            upload_experiment(os.path.join(EXPERIMENT_BASE_DIR, 'monitoring_'+exp+'.csar'), user_session)
             ts_dict[exp]["UPLOAD_END"] = datetime.now()
             log.info('Experimenter {} uploaded experiment {}.'.format(USERNAME, exp))
         except Exception as e:

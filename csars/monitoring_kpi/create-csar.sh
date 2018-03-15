@@ -10,7 +10,7 @@ function create_csar {
 		pushd Files
 		zip -r $INNER_CSAR_FILE . -x ".*" -x "*/.*"
 		popd
-		zip ../${PACKAGENAME}.csar Files/${INNER_CSAR_FILE} Definitions/experiment.yaml TOSCA-Metadata/TOSCA.meta TOSCA-Metadata/Metadata.yaml
+		zip ../"monitoring_"${PACKAGENAME}.csar Files/${INNER_CSAR_FILE} Definitions/experiment.yaml TOSCA-Metadata/TOSCA.meta TOSCA-Metadata/Metadata.yaml
 		${DELETE_INNER_CSAR} && rm Files/${INNER_CSAR_FILE}
 		popd
 	fi
