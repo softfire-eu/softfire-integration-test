@@ -100,7 +100,6 @@ def start_monitoring_kpi_test():
                 ts_dict[exp]["VALIDATE_END"] = datetime.now()
                 log.info('Validation of resource {}: {}-{} succeeded.'.format(USERNAME, resource_id, used_resource_id))
                 time.sleep(5)
-                validated_resources.append(['   - {}: {}-{}'.format(experimenter_name, resource_id, used_resource_id), 'OK', ''])
             except Exception as e:
                 error_message = e.message if isinstance(e, IntegrationTestException) else str(e)
                 log.error('Validation of resource {}: {}-{} failed: {}'.format(USERNAME, resource_id, used_resource_id, error_message))
@@ -118,7 +117,7 @@ def start_monitoring_kpi_test():
             traceback.print_exc()
 
     try:
-        with open("./result_KPI.json", 'r') as f:
+        with open("/etc/softfire/result_KPI.json", 'r') as f:
             old_tests = json.loads(f.read())
     except Exception:
         old_tests = {}
@@ -129,7 +128,7 @@ def start_monitoring_kpi_test():
         old_tests["res_l"] = []
         old_tests["res_l"].append(ts_dict)
 
-    with open("./result_KPI.json", "w") as f:
+    with open("/etc/softfire/result_KPI.json", "w") as f:
         f.write(json.dumps(old_tests, default=lambda obj: isinstance(obj, datetime) and obj.__str__()) or obj)
 
 
