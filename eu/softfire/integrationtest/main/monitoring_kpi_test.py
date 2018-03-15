@@ -55,7 +55,7 @@ def start_monitoring_kpi_test():
         preparation_failed = False
         try:
             log.debug("started validation phase")
-            __validate_experiment_file(os.path.join(EXPERIMENT_BASE_DIR, "monitoring_"exp+'.csar'))
+            __validate_experiment_file(os.path.join(EXPERIMENT_BASE_DIR, "monitoring_"+exp+'.csar'))
             ts_dict[exp]["VALIDATION_END"] = datetime.now()
         except Exception as e:
             traceback.print_exc()
@@ -72,7 +72,7 @@ def start_monitoring_kpi_test():
             ts_dict[exp]["UPLOAD_END"] = datetime.now()
             log.info('Experimenter {} uploaded experiment {}.'.format(USERNAME, exp))
         except Exception as e:
-            log.error('Experimenter {} could not upload experiment {}.'.format(USERNAME, os.path.join(EXPERIMENT_BASE_DIR, "monitoring_"exp+'.csar')))
+            log.error('Experimenter {} could not upload experiment {}.'.format(USERNAME, os.path.join(EXPERIMENT_BASE_DIR, "monitoring_"+exp+'.csar')))
             traceback.print_exc()
 
         try:
