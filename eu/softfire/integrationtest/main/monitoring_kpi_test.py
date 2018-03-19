@@ -116,20 +116,32 @@ def start_monitoring_kpi_test():
             log.error('Failure during removal of experiment {} of {}.'.format(experiment_id, USERNAME))
             traceback.print_exc()
 
-    try:
-        with open("/etc/softfire/result_KPI.json", 'r') as f:
-            old_tests = json.loads(f.read())
-    except Exception:
-        old_tests = {}
+    #try:
+    #    with open("/etc/softfire/result_KPI.json", 'r') as f:
+    #        old_tests = json.loads(f.read())
+    #except Exception:
+    #    old_tests = {}
 
-    try:
-        old_tests["res_l"].append(ts_dict)
-    except Exception:
-        old_tests["res_l"] = []
-        old_tests["res_l"].append(ts_dict)
+    #try:
+    #    old_tests["res_l"].append(ts_dict)
+    #except Exception:
+    #    old_tests["res_l"] = []
+    #    old_tests["res_l"].append(ts_dict)
 
-    with open("/etc/softfire/result_KPI.json", "w") as f:
-        f.write(json.dumps(old_tests, default=lambda obj: isinstance(obj, datetime) and obj.__str__()) or obj)
+    #with open("/etc/softfire/result_KPI.json", "w") as f:
+    #    f.write(json.dumps(old_tests, default=lambda obj: isinstance(obj, datetime) and obj.__str__()) or obj)
+
+
+    for k in ts_dict.keys():
+        with open("%s.csv" % k, 'a') as f:
+            if not os.path.exists(k):
+                dw = csv.DictWriter(f, ts_dict[k].keys())
+                dw.writeheader()
+                dw.writerow(ts_dict[k])
+            else:
+                dw = csv.writer(f)
+                dw.writerow(ts_dict[k].values())
+
 
 
 def __validate_experiment_file(experiment_file_path):
