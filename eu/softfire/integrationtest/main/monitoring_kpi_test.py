@@ -20,7 +20,7 @@ from datetime import datetime
 USERNAME = 'test_kpi'
 PASSWORD = 'test_kpi'
 EXPERIMENT_BASE_DIR = '/etc/softfire'
-EXPERIMENTS = ['fokus', 'ads', 'ericsson', 'surrey']
+EXPERIMENTS = ['fokus', 'ads', 'surrey']
 log = get_logger(__name__)
 logging.getLogger().setLevel("ERROR")
 logging.getLogger(__name__).setLevel("DEBUG")
@@ -104,11 +104,9 @@ def start_monitoring_kpi_test():
         try:
             log.info("Removing experiment {} of {}".format(experiment_id, USERNAME))
             delete_start = datetime.now()
-#            ts_dict[exp]["DELETE_START"] = datetime.now()
             delete_experiment(user_session, experiment_id)
             delete_end = datetime.now()
             ts_dict[exp]['DELETE_TIME'] = delete_end - delete_start
-#            ts_dict[exp]["DELETE_END"] = datetime.now()
             log.info('Removed experiment {} of {}.'.format(experiment_id, USERNAME))
         except Exception as e:
             log.error('Failure during removal of experiment {} of {}.'.format(experiment_id, USERNAME))
@@ -117,8 +115,11 @@ def start_monitoring_kpi_test():
         ts_dict[exp]['DEPLOY_TOTAL_TIME'] = booting_end - validation_start
 
     for k in ts_dict.keys():
+        write_header = False
+        if not os.path.exists("%s.csv" % k):
+            write_header = True
         with open("%s.csv" % k, 'a') as f:
-            if not os.path.exists("%s.csv" % k):
+            if write_header:
                 dw = csv.DictWriter(f, ts_dict[k].keys())
                 dw.writeheader()
                 dw.writerow(ts_dict[k])
