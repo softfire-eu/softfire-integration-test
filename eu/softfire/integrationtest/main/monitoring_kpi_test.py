@@ -114,6 +114,9 @@ def start_monitoring_kpi_test():
 
         ts_dict[exp]['DEPLOY_TOTAL_TIME'] = booting_end - validation_start
 
+    for k in ts_dict['fokus'].keys():
+        print("%s - %s" % (k, ts_dict['fokus'][k]))
+
     for k in ts_dict.keys():
         write_header = False
         if not os.path.exists("%s.csv" % k):
