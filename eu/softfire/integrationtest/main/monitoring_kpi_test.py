@@ -49,40 +49,44 @@ def start_monitoring_kpi_test():
 
     for exp in EXPERIMENTS:
         ts_dict[exp] = {}
-        ts_dict[exp]["START"] = datetime.now()
-        preparation_failed = False
+        validation_start = datetime.now()
+#        ts_dict[exp]["START"] = datetime.now()
         try:
             log.debug("started validation phase")
             __validate_experiment_file(os.path.join(EXPERIMENT_BASE_DIR, "monitoring_"+exp+'.csar'))
-            ts_dict[exp]["VALIDATION_END"] = datetime.now()
+            validation_end = datetime.now()
+#            ts_dict[exp]["VALIDATION_END"] = datetime.now()
         except Exception as e:
             traceback.print_exc()
-            preparation_failed = True
-        log.info('Finished validation phase.')
-        if preparation_failed:
             log.error('Preparation phase failed.')
-            time.sleep(1)
             return
+        ts_dict[exp]['VALIDATION_TIME'] = validation_end - validation_start
+        log.info('Finished validation phase.')
 
         try:
-            ts_dict[exp]["UPLOAD_START"] = datetime.now()
+            upload_start = datetime.now()
+#            ts_dict[exp]["UPLOAD_START"] = datetime.now()
             upload_experiment(os.path.join(EXPERIMENT_BASE_DIR, 'monitoring_'+exp+'.csar'), user_session)
-            ts_dict[exp]["UPLOAD_END"] = datetime.now()
+            upload_end = datetime.now()
+#            ts_dict[exp]["UPLOAD_END"] = datetime.now()
             log.info('Experimenter {} uploaded experiment {}.'.format(USERNAME, exp))
+            ts_dict[exp]['UPLOAD_TIME'] = upload_end - upload_start
         except Exception as e:
             log.error('Experimenter {} could not upload experiment {}.'.format(USERNAME, os.path.join(EXPERIMENT_BASE_DIR, "monitoring_"+exp+'.csar')))
             traceback.print_exc()
 
         try:
             experiment_id = '{}_monitoring_KPI_{}'.format(USERNAME, exp)
+            deploy_start = datetime.now()
             log.debug("Starting deploy experiment %s" % experiment_id)
-            ts_dict[exp]["DEPLOY_START"] = datetime.now()
+#            ts_dict[exp]["DEPLOY_START"] = datetime.now()
             deploy_experiment(user_session, experiment_id)
-            ts_dict[exp]["DEPLOY_END"] = datetime.now()
+            deploy_end = datetime.now()
+            ts_dict[exp]['DEPLOY_TIME'] = deploy_end - deploy_start
+#            ts_dict[exp]["DEPLOY_END"] = datetime.now()
         except Exception as e:
             log.error('The experiment\'s deployment failed for experimenter {}.'.format(USERNAME))
 
-        time.sleep(3)
         deployed_experiment = get_experiment_status(user_session, experiment_id=experiment_id)
         for resource in deployed_experiment:
             used_resource_id = resource.get('used_resource_id')
@@ -92,11 +96,13 @@ def start_monitoring_kpi_test():
                 log.info("Starting to validate resource of node type: %s" % node_type)
                 validator = get_validator(node_type)
                 log.debug("Got validator %s" % validator)
-                ts_dict[exp]["VALIDATE_START"] = datetime.now()
+                booting_start = datetime.now()
+#                ts_dict[exp]["VALIDATE_START"] = datetime.now()
                 validator.validate(get_resource_from_id(used_resource_id, session=user_session), used_resource_id, user_session)
-                ts_dict[exp]["VALIDATE_END"] = datetime.now()
+                booting_end = datetime.now()
+                ts_dict[exp]['BOOTING_TIME'] = booting_end - booting_start
+#                ts_dict[exp]["VALIDATE_END"] = datetime.now()
                 log.info('Validation of resource {}: {}-{} succeeded.'.format(USERNAME, resource_id, used_resource_id))
-                time.sleep(5)
             except Exception as e:
                 error_message = e.message if isinstance(e, IntegrationTestException) else str(e)
                 log.error('Validation of resource {}: {}-{} failed: {}'.format(USERNAME, resource_id, used_resource_id, error_message))
@@ -105,13 +111,18 @@ def start_monitoring_kpi_test():
 
         try:
             log.info("Removing experiment {} of {}".format(experiment_id, USERNAME))
-            ts_dict[exp]["DELETE_START"] = datetime.now()
+            delete_start = datetime.now()
+#            ts_dict[exp]["DELETE_START"] = datetime.now()
             delete_experiment(user_session, experiment_id)
-            ts_dict[exp]["DELETE_END"] = datetime.now()
+            delete_end = datetime.now()
+            ts_dict[exp]['DELETE_TIME'] = delete_end - delete_start
+#            ts_dict[exp]["DELETE_END"] = datetime.now()
             log.info('Removed experiment {} of {}.'.format(experiment_id, USERNAME))
         except Exception as e:
             log.error('Failure during removal of experiment {} of {}.'.format(experiment_id, USERNAME))
             traceback.print_exc()
+
+        ts_dict[exp]['DEPLOY_TOTAL_TIME'] = booting_end - validation_start
 
     for k in ts_dict.keys():
         with open("%s.csv" % k, 'a') as f:
