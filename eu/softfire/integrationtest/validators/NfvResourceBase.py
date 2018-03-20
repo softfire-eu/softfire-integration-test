@@ -18,7 +18,7 @@ class NfvResourceBaseValidator(AbstractValidator):
         # wait at most about 7 minutes for the NSR to reach active state
         nsr = None
         for i in range(wait_nfv_resource_minuties * 20):
-            time.sleep(0.1)
+            time.sleep(3)
             resource = get_resource_from_id(resource_id, session)
             try:
                 nsr = json.loads(resource)
