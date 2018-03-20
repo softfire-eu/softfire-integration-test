@@ -84,7 +84,6 @@ def start_monitoring_kpi_test():
 
         time.sleep(3)
         deployed_experiment = get_experiment_status(user_session, experiment_id=experiment_id)
-        print(deployed_experiment)
         for resource in deployed_experiment:
             used_resource_id = resource.get('used_resource_id')
             resource_id = resource.get('resource_id')
@@ -113,22 +112,6 @@ def start_monitoring_kpi_test():
         except Exception as e:
             log.error('Failure during removal of experiment {} of {}.'.format(experiment_id, USERNAME))
             traceback.print_exc()
-
-    #try:
-    #    with open("/etc/softfire/result_KPI.json", 'r') as f:
-    #        old_tests = json.loads(f.read())
-    #except Exception:
-    #    old_tests = {}
-
-    #try:
-    #    old_tests["res_l"].append(ts_dict)
-    #except Exception:
-    #    old_tests["res_l"] = []
-    #    old_tests["res_l"].append(ts_dict)
-
-    #with open("/etc/softfire/result_KPI.json", "w") as f:
-    #    f.write(json.dumps(old_tests, default=lambda obj: isinstance(obj, datetime) and obj.__str__()) or obj)
-
 
     for k in ts_dict.keys():
         with open("%s.csv" % k, 'a') as f:
