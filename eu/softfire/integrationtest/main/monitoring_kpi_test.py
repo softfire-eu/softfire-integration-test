@@ -50,12 +50,10 @@ def start_monitoring_kpi_test():
     for exp in EXPERIMENTS:
         ts_dict[exp] = {}
         validation_start = datetime.now()
-#        ts_dict[exp]["START"] = datetime.now()
         try:
             log.debug("started validation phase")
             __validate_experiment_file(os.path.join(EXPERIMENT_BASE_DIR, "monitoring_"+exp+'.csar'))
             validation_end = datetime.now()
-#            ts_dict[exp]["VALIDATION_END"] = datetime.now()
         except Exception as e:
             traceback.print_exc()
             log.error('Preparation phase failed.')
@@ -65,10 +63,8 @@ def start_monitoring_kpi_test():
 
         try:
             upload_start = datetime.now()
-#            ts_dict[exp]["UPLOAD_START"] = datetime.now()
             upload_experiment(os.path.join(EXPERIMENT_BASE_DIR, 'monitoring_'+exp+'.csar'), user_session)
             upload_end = datetime.now()
-#            ts_dict[exp]["UPLOAD_END"] = datetime.now()
             log.info('Experimenter {} uploaded experiment {}.'.format(USERNAME, exp))
             ts_dict[exp]['UPLOAD_TIME'] = upload_end - upload_start
         except Exception as e:
@@ -79,11 +75,9 @@ def start_monitoring_kpi_test():
             experiment_id = '{}_monitoring_KPI_{}'.format(USERNAME, exp)
             deploy_start = datetime.now()
             log.debug("Starting deploy experiment %s" % experiment_id)
-#            ts_dict[exp]["DEPLOY_START"] = datetime.now()
             deploy_experiment(user_session, experiment_id)
             deploy_end = datetime.now()
             ts_dict[exp]['DEPLOY_TIME'] = deploy_end - deploy_start
-#            ts_dict[exp]["DEPLOY_END"] = datetime.now()
         except Exception as e:
             log.error('The experiment\'s deployment failed for experimenter {}.'.format(USERNAME))
 
@@ -94,14 +88,12 @@ def start_monitoring_kpi_test():
             node_type = resource.get('node_type')
             try:
                 log.info("Starting to validate resource of node type: %s" % node_type)
-                validator = get_validator(node_type)
+                validator = get_validator("NfvResourceBase")
                 log.debug("Got validator %s" % validator)
                 booting_start = datetime.now()
-#                ts_dict[exp]["VALIDATE_START"] = datetime.now()
                 validator.validate(get_resource_from_id(used_resource_id, session=user_session), used_resource_id, user_session)
                 booting_end = datetime.now()
                 ts_dict[exp]['BOOTING_TIME'] = booting_end - booting_start
-#                ts_dict[exp]["VALIDATE_END"] = datetime.now()
                 log.info('Validation of resource {}: {}-{} succeeded.'.format(USERNAME, resource_id, used_resource_id))
             except Exception as e:
                 error_message = e.message if isinstance(e, IntegrationTestException) else str(e)
