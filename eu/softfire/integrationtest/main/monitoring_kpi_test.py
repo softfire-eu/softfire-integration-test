@@ -115,7 +115,7 @@ def start_monitoring_kpi_test():
 
     for k in ts_dict.keys():
         with open("%s.csv" % k, 'a') as f:
-            if not os.path.exists(k):
+            if not os.path.exists("%s.csv" % k):
                 dw = csv.DictWriter(f, ts_dict[k].keys())
                 dw.writeheader()
                 dw.writerow(ts_dict[k])
