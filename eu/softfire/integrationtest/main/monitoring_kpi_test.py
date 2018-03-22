@@ -119,7 +119,7 @@ def start_monitoring_kpi_test():
 
     for k in ts_dict.keys():
         write_header = False
-        if not os.path.exists("%s.csv" % k):
+        if not os.path.exists("~/%s.csv" % k):
             write_header = True
         with open("%s.csv" % k, 'a') as f:
             if write_header:
