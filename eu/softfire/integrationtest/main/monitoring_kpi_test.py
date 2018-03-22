@@ -121,7 +121,7 @@ def start_monitoring_kpi_test():
         write_header = False
         if not os.path.exists("/root/%s.csv" % k):
             write_header = True
-        with open("%s.csv" % k, 'a') as f:
+        with open("/root/%s.csv" % k, 'a') as f:
             if write_header:
                 f.write("VALIDATION_TIME,UPLOAD_TIME,DEPLOY_TIME,BOOTING_TIME,DEPLOY_TOTAL_TIME,DELETE_TIME\n")
                 f.write("%s,%s,%s,%s,%s,%s\n" % (ts_dict[k]['VALIDATION_TIME'],ts_dict[k]['UPLOAD_TIME'],ts_dict[k]['DEPLOY_TIME'],ts_dict[k]['BOOTING_TIME'],ts_dict[k]['DEPLOY_TOTAL_TIME'],ts_dict[k]['DELETE_TIME'])) 
