@@ -24,10 +24,10 @@ topology_template:
         resource_name: fokus-cell
       type: PhysicalResource
 
-#    sdn_fokus_dev:
-#      properties:
-#        resource_id: sdn-controller-opensdncore-fokus
-#      type: SdnResource
+    sdn_fokus_dev:
+      properties:
+        resource_id: sdn-controller-opensdncore-fokus
+      type: SdnResource
 
     firewall_1:
       type: SecurityResource
