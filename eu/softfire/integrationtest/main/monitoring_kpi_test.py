@@ -114,19 +114,19 @@ def start_monitoring_kpi_test():
 
         ts_dict[exp]['DEPLOY_TOTAL_TIME'] = booting_end - validation_start
 
+    for k in ts_dict['fokus'].keys():
+        print("%s - %s" % (k, ts_dict['fokus'][k]))
+
     for k in ts_dict.keys():
         write_header = False
-        if not os.path.exists("%s.csv" % k):
+        if not os.path.exists("/home/jenkins/%s.csv" % k):
             write_header = True
-        with open("%s.csv" % k, 'a') as f:
+        with open("/home/jenkins/%s.csv" % k, 'a') as f:
             if write_header:
-                dw = csv.DictWriter(f, ts_dict[k].keys())
-                dw.writeheader()
-                dw.writerow(ts_dict[k])
+                f.write("VALIDATION_TIME,UPLOAD_TIME,DEPLOY_TIME,BOOTING_TIME,DEPLOY_TOTAL_TIME,DELETE_TIME\n")
+                f.write("%s,%s,%s,%s,%s,%s\n" % (ts_dict[k]['VALIDATION_TIME'],ts_dict[k]['UPLOAD_TIME'],ts_dict[k]['DEPLOY_TIME'],ts_dict[k]['BOOTING_TIME'],ts_dict[k]['DEPLOY_TOTAL_TIME'],ts_dict[k]['DELETE_TIME'])) 
             else:
-                dw = csv.writer(f)
-                dw.writerow(ts_dict[k].values())
-
+                f.write("%s,%s,%s,%s,%s,%s\n" % (ts_dict[k]['VALIDATION_TIME'],ts_dict[k]['UPLOAD_TIME'],ts_dict[k]['DEPLOY_TIME'],ts_dict[k]['BOOTING_TIME'],ts_dict[k]['DEPLOY_TOTAL_TIME'],ts_dict[k]['DELETE_TIME']))
 
 
 def __validate_experiment_file(experiment_file_path):
