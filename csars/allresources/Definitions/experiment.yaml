@@ -10,7 +10,7 @@ topology_template:
       properties:
         resource_id: clean-ubuntu-with-fips
         testbeds:
-          ANY: ads
+          ANY: fokus
 #          VDU1: fokus
 #          VDU2: ads
         ssh_pub_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGogqvVpYyzTc/s2JzgsPRYF6gVcfiyRiANAG1IIX0Lf83CLAQ0VepSulGEckGJXzFvPs2Qy1KI9E45F/XHdCrjGH11QdjIl+CL17qAp/JUU39GAjmTXzuRcQZBBbGOiR+XJZRKcIOMmCAWeW8YcRg4XczZdsV4xEBgwPXznm9seFTC0wQQyBYyunfsgXks80IFzyovFRrneLxx/djjFKg7PgSnuW3PusGCQnVil5AZHZt9EQvRMgxDnitDk1WV5Ne6zvYuc9DuuI9NAjqbv4YmMMnrvngx4BhB2whjz3dcVzHsrubo0xpXLKkC/o46QRKJT6AjKsw+qvBQYgaOLGl ubuntu@sf-ob-box"
@@ -34,7 +34,7 @@ topology_template:
       properties:
         resource_id: firewall
         want_agent: false
-        testbed: ads
+        testbed: fokus
         default_rule: allow
         denied_ips: [172.20.10.138]
         logging: true
@@ -42,7 +42,7 @@ topology_template:
     mn:
       properties:
         resource_id: monitor
-        testbed: ads
+        testbed: fokus
         lan_name: softfire-internal
       type: MonitoringResource
 
