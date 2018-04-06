@@ -12,7 +12,7 @@ topology_template:
       properties:
         resource_id: firewall
         want_agent: false
-        testbed: fokus
+        testbed: surrey
         default_rule: allow
         denied_ips: [172.20.10.138]
         lan_name: softfire-internal
