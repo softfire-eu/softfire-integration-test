@@ -12,7 +12,7 @@ topology_template:
       properties:
         resource_id: firewall
         want_agent: false
-        testbed: surrey
+        testbed: fokus
         default_rule: allow
         denied_ips: [172.20.10.138]
         lan_name: softfire-internal
@@ -23,7 +23,7 @@ topology_template:
         resource_id: suricata
         want_agent: false
         lan_name: softfire-internal
-        testbed: surrey
+        testbed: ericcson
         rules:
           - "alert icmp any any -> any any (msg: \"ICMP Packet found\";)"
         logging: true
@@ -33,7 +33,7 @@ topology_template:
         resource_id: pfsense
         lan_name: softfire-internal
         wan_name: wan-network
-        testbed: surrey
+        testbed: ericcson
 
 
 tosca_definitions_version: tosca_simple_yaml_1_0
