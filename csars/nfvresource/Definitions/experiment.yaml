@@ -1,0 +1,22 @@
+--- 
+description: "Template for SoftFIRE yaml resource request definition"
+imports: 
+  - 
+    softfire_node_types: "http://docs.softfire.eu/etc/softfire_node_types.yaml"
+topology_template: 
+  node_templates: 
+
+    mynsd:
+      properties:
+        resource_id: clean-ubuntu-with-fips
+        testbeds:
+          ANY:
+#          VDU1: fokus
+#          VDU2: ads
+        ssh_pub_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGogqvVpYyzTc/s2JzgsPRYF6gVcfiyRiANAG1IIX0Lf83CLAQ0VepSulGEckGJXzFvPs2Qy1KI9E45F/XHdCrjGH11QdjIl+CL17qAp/JUU39GAjmTXzuRcQZBBbGOiR+XJZRKcIOMmCAWeW8YcRg4XczZdsV4xEBgwPXznm9seFTC0wQQyBYyunfsgXks80IFzyovFRrneLxx/djjFKg7PgSnuW3PusGCQnVil5AZHZt9EQvRMgxDnitDk1WV5Ne6zvYuc9DuuI9NAjqbv4YmMMnrvngx4BhB2whjz3dcVzHsrubo0xpXLKkC/o46QRKJT6AjKsw+qvBQYgaOLGl ubuntu@sf-ob-box"
+        file_name: "Files/nsd.csar"
+        nsd_name: "integration-test-1"
+      type: NfvResource
+
+
+tosca_definitions_version: tosca_simple_yaml_1_0
