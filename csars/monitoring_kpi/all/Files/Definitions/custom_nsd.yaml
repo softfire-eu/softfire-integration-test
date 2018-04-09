@@ -1,0 +1,114 @@
+tosca_definitions_version: tosca_simple_profile_for_nfv_1_0
+description: Monitoring KPI vnf
+metadata:
+    ID: monitoring KPI vnf
+    vendor: SoftFIRE
+    version: 1.0
+topology_template:
+    node_templates:
+        vm1:
+            type: openbaton.type.VNF
+            properties:
+                ID: vm1
+                vendor: SoftFIRE
+                version: 1.0
+                endpoint: generic
+                type: vm1
+                deploymentFlavour:
+                  - flavour_key: m1.small
+            requirements:
+                - virtualLink: testing_lan
+                - vdu: VDU1
+            interfaces:
+                lifecycle:
+                    INSTANTIATE:
+                        - install.sh
+        vm2:
+            type: openbaton.type.VNF
+            properties:
+                ID: vm2
+                vendor: SoftFIRE
+                version: 1.0
+                endpoint: generic
+                type: vm2
+                deploymentFlavour:
+                  - flavour_key: m1.small
+            requirements:
+                - virtualLink: testing_lan
+                - vdu: VDU2
+            interfaces:
+                lifecycle:
+                    INSTANTIATE:
+                        - install.sh
+        vm3:
+            type: openbaton.type.VNF
+            properties:
+                ID: vm3
+                vendor: SoftFIRE
+                version: 1.0
+                endpoint: generic
+                type: vm3
+                deploymentFlavour:
+                  - flavour_key: m1.small
+            requirements:
+                - virtualLink: testing_lan
+                - vdu: VDU3
+            interfaces:
+                lifecycle:
+                    INSTANTIATE:
+                        - install.sh
+        VDU1:
+            type: tosca.nodes.nfv.VDU
+            properties:
+                scale_in_out: 1
+            requirements:
+                - virtual_link: CP1
+            artifacts:
+                VDU1Image:
+                    type: tosca.artifacts.Deployment.Image.VM
+                    file: Ubuntu-16.04
+        VDU2:
+            type: tosca.nodes.nfv.VDU
+            properties:
+                scale_in_out: 1
+            requirements:
+                - virtual_link: CP2
+            artifacts:
+                VDU1Image:
+                    type: tosca.artifacts.Deployment.Image.VM
+                    file: Ubuntu-16.04
+        VDU3:
+            type: tosca.nodes.nfv.VDU
+            properties:
+                scale_in_out: 1
+            requirements:
+                - virtual_link: CP3
+            artifacts:
+                VDU1Image:
+                    type: tosca.artifacts.Deployment.Image.VM
+                    file: Ubuntu-16.04
+        CP1:
+            properties:
+                floatingIP: random
+            type: tosca.nodes.nfv.CP
+            requirements:
+                - virtualBinding: VDU1
+                - virtualLink: testing_lan
+        CP2:
+            properties:
+                floatingIP: random
+            type: tosca.nodes.nfv.CP
+            requirements:
+                - virtualBinding: VDU2
+                - virtualLink: testing_lan
+        CP3:
+            properties:
+                floatingIP: random
+            type: tosca.nodes.nfv.CP
+            requirements:
+                - virtualBinding: VDU3
+                - virtualLink: testing_lan
+        testing_lan:
+            type: tosca.nodes.nfv.VL
+            properties:
+                vendor: SoftFire

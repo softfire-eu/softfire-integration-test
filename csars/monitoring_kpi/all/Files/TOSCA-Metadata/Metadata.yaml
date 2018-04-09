@@ -1,0 +1,9 @@
+name: custom_nsd
+description: Monitoring KPI nsd
+provider: SoftFIRE
+image:
+    upload: false
+    names:
+        - Ubuntu-16.04
+vim_types:
+    - openstack
