@@ -24,10 +24,10 @@ topology_template:
         resource_name: fokus-cell
       type: PhysicalResource
 
-#    sdn_fokus_dev:
-#      properties:
-#        resource_id: sdn-controller-opensdncore-fokus
-#      type: SdnResource
+    sdn_fokus_dev:
+      properties:
+        resource_id: sdn-controller-opensdncore-fokus
+      type: SdnResource
 
     firewall_1:
       type: SecurityResource
@@ -37,7 +37,9 @@ topology_template:
         testbed: fokus
         default_rule: allow
         denied_ips: [172.20.10.138]
+        lan_name: softfire-internal
         logging: true
+      
 
     mn:
       properties:
