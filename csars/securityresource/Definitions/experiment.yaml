@@ -23,7 +23,7 @@ topology_template:
         resource_id: suricata
         want_agent: false
         lan_name: softfire-internal
-        testbed: ericcson
+        testbed: fokus
         rules:
           - "alert icmp any any -> any any (msg: \"ICMP Packet found\";)"
         logging: true
@@ -33,7 +33,7 @@ topology_template:
         resource_id: pfsense
         lan_name: softfire-internal
         wan_name: wan-network
-        testbed: ericcson
+        testbed: fokus
 
 
 tosca_definitions_version: tosca_simple_yaml_1_0
