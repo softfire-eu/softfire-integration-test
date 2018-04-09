@@ -9,7 +9,7 @@ topology_template:
     mn:
       properties:
         resource_id: monitor
-        testbed:
+        testbed: fokus
         lan_name: softfire-internal
       type: MonitoringResource
 
