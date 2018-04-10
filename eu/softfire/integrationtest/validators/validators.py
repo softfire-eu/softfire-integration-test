@@ -8,7 +8,18 @@ validator_package_name = 'eu.softfire.integrationtest.validators'
 
 class AbstractValidator(metaclass=ABCMeta):
     @abstractmethod
-    def validate(self, resource, resource_id, session):
+    def validate(self, resource, resource_id, used_resource_id, session):
+        """
+        The used_resource_id can be used for retrieving the latest resource object
+        by using the experiment_manager_client's get_resource_from_id method.
+        The used_resource_id is only used internally in the experiment manager and
+        in contrast to the resource_id never exposed to the user.
+        :param resource: dictionary representing the value of the deployed resource
+        :param resource_id: The ID of the resource
+        :param used_resource_id: The used_resource ID which is used by the experiment manager when storing deployed resources
+        :param session:
+        :return:
+        """
         pass
 
 

@@ -150,7 +150,7 @@ def start_integration_test():
                 log.info("Starting to validate resource of node type: %s" % node_type)
                 validator = get_validator(node_type)
                 log.debug("Got validator %s" % validator)
-                validator.validate(get_resource_from_id(used_resource_id, session=user_session), used_resource_id, user_session)
+                validator.validate(get_resource_from_id(used_resource_id, session=user_session), resource_id, used_resource_id, user_session)
                 log.info('\n\n\n')
                 log.info('Validation of resource {}: {}-{} succeeded.\n\n\n'.format(experimenter_name, resource_id, used_resource_id))
                 time.sleep(5)
