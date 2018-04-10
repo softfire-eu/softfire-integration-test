@@ -23,11 +23,15 @@ class SecurityResourceValidator(AbstractValidator):
                 if "ERROR" in str(v).upper():
                     raise SecurityResourceValidationException(v)
             if res.get('status') == 'ACTIVE':
+                if res.get('resource_id') != 'firewall':
+                    log.debug('Not a firewall SecurityResource')
+                    return
                 api_url = res.get('api_url')
-                resp = requests.get(api_url)
+                resp = requests.get(api_url + '/ufw/status')
                 if resp.status_code != 200:
                     raise SecurityResourceValidationException(resp.text)
                 else:
+                    log.debug('SecurityResource with resource_id firewall is valid')
                     return
             time.sleep(3)
         else:
