@@ -24,9 +24,9 @@ topology_template:
         resource_name: fokus-cell
       type: PhysicalResource
 
-    sdn_fokus_dev:
+    sdn_ericcson:
       properties:
-        resource_id: sdn-controller-opensdncore-fokus
+        resource_id: sdn-controller-odl-ericsson
       type: SdnResource
 
     firewall_1:
