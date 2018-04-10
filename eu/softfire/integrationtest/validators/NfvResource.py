@@ -13,13 +13,13 @@ wait_nfv_resource_minuties = int(get_config_value('nfv-resource', 'wait-nfv-res-
 
 
 class NfvResourceValidator(AbstractValidator):
-    def validate(self, resource, resource_id, session):
+    def validate(self, resource, resource_id, used_resource_id, session):
         log.debug('Validate NfvResource with resource_id: {}'.format(resource_id))
         # wait at most about 7 minutes for the NSR to reach active state
         nsr = None
         for i in range(wait_nfv_resource_minuties * 20):
             time.sleep(3)
-            resource = get_resource_from_id(resource_id, session)
+            resource = get_resource_from_id(used_resource_id, session)
             try:
                 nsr = json.loads(resource)
             except Exception as e:

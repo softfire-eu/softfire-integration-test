@@ -5,14 +5,20 @@ DELETE_INNER_CSAR=true
 
 function create_csar {
 	PACKAGENAME=$1
-	if [ ! -z $PACKAGENAME -a -d $PACKAGENAME -a -d ${PACKAGENAME}/Files ]; then
+	if [ ! -z $PACKAGENAME -a -d $PACKAGENAME ]; then
 		pushd $PACKAGENAME
-		pushd Files
-		zip -r $INNER_CSAR_FILE . -x ".*" -x "*/.*" -x "scripts/common/*"
+		if [ -d Files ]; then
+		    pushd Files
+		    zip -r $INNER_CSAR_FILE . -x ".*" -x "*/.*" -x "scripts/common/*"
+		    popd
+		    zip ../${PACKAGENAME}.csar Files/${INNER_CSAR_FILE} Definitions/experiment.yaml TOSCA-Metadata/TOSCA.meta TOSCA-Metadata/Metadata.yaml
+		    ${DELETE_INNER_CSAR} && rm Files/${INNER_CSAR_FILE}
+		else
+		    zip ../${PACKAGENAME}.csar Definitions/experiment.yaml TOSCA-Metadata/TOSCA.meta TOSCA-Metadata/Metadata.yaml
+		fi
 		popd
-		zip ../${PACKAGENAME}.csar Files/${INNER_CSAR_FILE} Definitions/experiment.yaml TOSCA-Metadata/TOSCA.meta TOSCA-Metadata/Metadata.yaml
-		${DELETE_INNER_CSAR} && rm Files/${INNER_CSAR_FILE}
-		popd
+	else
+	  echo "------------------ $1"
 	fi
 }
 

@@ -15,19 +15,23 @@ wait_nfv_resource_minutes = int(get_config_value('nfv-resource', 'wait-nfv-res-m
 
 
 class SecurityResourceValidator(AbstractValidator):
-    def validate(self, resource, resource_id, session):
+    def validate(self, resource, resource_id, used_resource_id, session):
         log.debug('Validate SecurityResource with resource_id: {}'.format(resource_id))
         for i in range(wait_nfv_resource_minutes * 20):
-            res = json.loads(get_resource_from_id(resource_id, session))
+            res = json.loads(get_resource_from_id(used_resource_id, session))
             for k, v in res.items():
                 if "ERROR" in str(v).upper():
                     raise SecurityResourceValidationException(v)
             if res.get('status') == 'ACTIVE':
+                if resource_id != 'firewall':
+                    log.debug('Not a firewall SecurityResource')
+                    return
                 api_url = res.get('api_url')
-                resp = requests.get(api_url)
+                resp = requests.get(api_url + '/ufw/status')
                 if resp.status_code != 200:
                     raise SecurityResourceValidationException(resp.text)
                 else:
+                    log.debug('SecurityResource with resource_id firewall is valid')
                     return
             time.sleep(3)
         else:
