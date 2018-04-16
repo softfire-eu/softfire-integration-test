@@ -20,7 +20,7 @@ from datetime import datetime
 USERNAME = 'test_kpi'
 PASSWORD = 'test_kpi'
 EXPERIMENT_BASE_DIR = '/etc/softfire'
-EXPERIMENTS = ['all', 'ericsson']
+EXPERIMENTS = ['ericsson']
 log = get_logger(__name__)
 logging.getLogger().setLevel("ERROR")
 logging.getLogger(__name__).setLevel("DEBUG")
