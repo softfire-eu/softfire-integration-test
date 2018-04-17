@@ -18,7 +18,7 @@ from eu.softfire.integrationtest.validators.validators import get_validator
 from datetime import datetime
 
 USERNAME = 'test_test_1'
-PASSWORD = 'test_test_1'
+PASSWORD = '1234'
 EXPERIMENT_BASE_DIR = '/etc/softfire'
 EXPERIMENTS = ['ericsson']
 log = get_logger(__name__)
