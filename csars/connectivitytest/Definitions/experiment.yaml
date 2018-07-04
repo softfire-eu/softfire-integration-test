@@ -12,7 +12,7 @@ topology_template:
         testbeds:
           VDU1: ads
           VDU2: surrey
-          VDU3: surrey
+          VDU3: fokus
           VDU4: fokus
           VDU4: fokus
           VDU5: ads
